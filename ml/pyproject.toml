@@ -1,0 +1,34 @@
+[project]
+name = "ml"
+version = "0.1.0"
+description = "ML pipeline for SIH Weather Downscaling"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas>=2.2.2",
+    "numpy>=1.26.4",
+    "scikit-learn>=1.5.0",
+    "xgboost>=2.1.0",
+    "geopandas>=1.0.1",
+    "rasterio>=1.3.10",
+    "xarray>=2024.6.0",
+    "shapely>=2.0.4",
+    "netcdf4>=1.6.5",
+    "rioxarray>=0.15.1",
+    "boto3>=1.34.0",
+    "cdsapi>=0.7.2",
+    "dask>=2023.12.0",
+    "rasterstats>=0.21.0",
+    "pyarrow>=25.0.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["data", "preprocessing", "features", "baselines", "models", "training", "evaluation", "inference"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2.2",
+]

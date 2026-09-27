@@ -1,0 +1,22 @@
+{
+    "status": "PARTIAL (BLOCKED ON ERA5 REDOWNLOAD)",
+    "geometry": {
+        "total_features": 1545,
+        "invalid_features": 0,
+        "duplicate_identifiers": 194,
+        "small_features": 2
+    },
+    "dem_features": {
+        "status": "COMPLETE",
+        "rows": 1545,
+        "file": "data/processed/features/panchayat_static_features.parquet"
+    },
+    "era5_features": {
+        "status": "BLOCKED",
+        "reason": "Existing ERA5 bbox (18-19.5, 73-75) does not cover the complete Panchayat extent (17.89-19.39, 73.32-75.16)."
+    },
+    "precipitation_processing": {
+        "status": "BLOCKED",
+        "reason": "Waiting on ERA5 redownload."
+    }
+}

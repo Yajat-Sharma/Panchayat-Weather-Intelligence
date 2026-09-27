@@ -1,0 +1,72 @@
+# Dependencies
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Frontend dependencies
+node_modules/
+.next/
+out/
+build/
+dist/
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Data and Models
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/external/*
+!data/external/.gitkeep
+geospatial/rasters/*
+!geospatial/rasters/.gitkeep
+*.nc
+*.tif
+*.tiff
+*.gpkg
+*.geojson
+*.shp
+*.shx
+*.dbf
+*.prj
+*.csv
+*.parquet
+*.h5
+*.hdf5
+*.pb
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Jupyter Notebooks
+.ipynb_checkpoints

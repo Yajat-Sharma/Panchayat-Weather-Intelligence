@@ -1,0 +1,10 @@
+study_area:
+  state: "Maharashtra"
+  district: "Pune"
+  weather_bbox:
+    north: 20.0
+    west: 72.5
+    south: 17.0
+    east: 75.5
+  buffer_deg: 0.5
+  crs: "EPSG:4326"

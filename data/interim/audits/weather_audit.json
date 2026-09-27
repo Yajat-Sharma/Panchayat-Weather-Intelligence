@@ -1,0 +1,34 @@
+{
+    "status": "VALID",
+    "file_path": "C:\\Users\\Yajat Sharma\\Desktop\\weather\\data\\raw\\weather\\era5_pune_2023.nc",
+    "file_size_bytes": 960783,
+    "dimensions": {
+        "time": 8760,
+        "latitude": 7,
+        "longitude": 9
+    },
+    "spatial_resolution": {
+        "latitude": 0.25,
+        "longitude": 0.25
+    },
+    "bounding_box": [
+        73.0,
+        18.0,
+        75.0,
+        19.5
+    ],
+    "time_start": "2023-01-01 00:00:00",
+    "time_end": "2023-12-31 23:00:00",
+    "expected_timestamps": 8760,
+    "actual_timestamps": 8760,
+    "has_duplicates": false,
+    "variables": {
+        "tp": {
+            "units": "m",
+            "long_name": "Total precipitation",
+            "missing_values": 0
+        }
+    },
+    "precipitation_semantics": "Units are 'm'. Total precipitation accumulated since previous forecast step.",
+    "suitability": "GO"
+}

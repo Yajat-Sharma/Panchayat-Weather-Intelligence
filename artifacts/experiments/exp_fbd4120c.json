@@ -1,0 +1,40 @@
+{
+    "experiment_id": "fbd4120c",
+    "timestamp": "2026-09-27T14:48:56.905520",
+    "config": "synthetic_default",
+    "dataset": "synthetic_5km_to_25km",
+    "variable": "precipitation",
+    "train_samples": 436800,
+    "test_samples": 147200,
+    "baseline_metrics": {
+        "MAE": 2.2434714443614863,
+        "RMSE": 2.8684087438920813,
+        "Bias": -2.0877019919581746e-18,
+        "Correlation": 0.19965557923050783
+    },
+    "xgboost_metrics": {
+        "MAE": 2.2538550689266326,
+        "RMSE": 2.8851053754955975,
+        "Bias": 0.010347220283310365,
+        "Correlation": 0.17630745298471082
+    },
+    "error_by_elevation": [
+        {
+            "elev_bin": "(384.951, 969.944]",
+            "MAE": 2.260384113454116
+        },
+        {
+            "elev_bin": "(969.944, 1467.586]",
+            "MAE": 2.27002059408774
+        },
+        {
+            "elev_bin": "(1467.586, 1975.343]",
+            "MAE": 2.250749566841507
+        },
+        {
+            "elev_bin": "(1975.343, 2541.267]",
+            "MAE": 2.2342660013231677
+        }
+    ],
+    "feature_importance": {
+        "coarse_val": 

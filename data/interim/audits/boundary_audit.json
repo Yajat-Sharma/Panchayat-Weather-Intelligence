@@ -1,0 +1,17 @@
+{
+    "status": "VALID",
+    "file_path": "C:\\Users\\Yajat Sharma\\Desktop\\weather\\data\\raw\\boundaries\\pune_panchayats.geojson",
+    "crs": "EPSG:4326",
+    "empty_geometries": 0,
+    "statistics": {
+        "count": 1545,
+        "area_min_sqkm": 0.0010510899503925033,
+        "area_max_sqkm": 159.22931214991027,
+        "area_mean_sqkm": 10.12751095830783,
+        "area_median_sqkm": 7.846901236583593,
+        "area_p25_sqkm": 4.615559125766981,
+        "area_p75_sqkm": 12.912301165002457,
+        "area_p90_sqkm": 19.55034531679262,
+        "area_p95_sqkm": 25.177119361073345
+    }
+}

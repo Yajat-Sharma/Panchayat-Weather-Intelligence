@@ -1,0 +1,32 @@
+[project]
+name = "api"
+version = "0.1.0"
+description = "FastAPI backend for SIH Weather Downscaling"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.111.0",
+    "uvicorn>=0.30.1",
+    "pydantic>=2.7.4",
+    "pydantic-settings>=2.3.4",
+    "sqlalchemy>=2.0.31",
+    "geoalchemy2>=0.15.1",
+    "psycopg2-binary>=2.9.9",
+    "alembic>=1.13.1",
+    "geopandas>=1.1.4",
+    "pandas>=2.3.3",
+    "fastparquet>=2026.9.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2.2",
+    "httpx>=0.27.0",
+    "pytest-asyncio>=0.23.7",
+]

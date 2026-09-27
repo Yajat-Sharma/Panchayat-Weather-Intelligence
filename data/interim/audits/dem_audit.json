@@ -1,0 +1,14 @@
+{
+    "status": "VALID",
+    "error": null,
+    "file_path": "data/raw/terrain/pune_dem.tif",
+    "width": 10800,
+    "height": 10800,
+    "crs": "EPSG:4326",
+    "pixel_size": [0.0002777777777777778, -0.0002777777777777778],
+    "bounding_box": [72.99986111111112, 17.000138888888888, 75.99986111111112, 20.000138888888888],
+    "elevation_min": null,
+    "elevation_max": null,
+    "nodata": null,
+    "suitability": "GO"
+}
