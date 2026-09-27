@@ -17,6 +17,7 @@ export default function Dashboard() {
   const [selectedGpcode, setSelectedGpcode] = useState<string | null>(null);
   const [panchayatDetails, setPanchayatDetails] = useState<any>(null);
   const [weatherData, setWeatherData] = useState<any>(null);
+  const [operationalForecast, setOperationalForecast] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -54,9 +55,17 @@ export default function Dashboard() {
           console.error(e);
           setWeatherData(null);
         });
+        
+      axios.get(`${API_BASE}/panchayats/${selectedGpcode}/weather/forecast`)
+        .then(res => setOperationalForecast(res.data))
+        .catch(e => {
+          console.error(e);
+          setOperationalForecast(null);
+        });
     } else {
       setPanchayatDetails(null);
       setWeatherData(null);
+      setOperationalForecast(null);
     }
   }, [selectedGpcode]);
 
@@ -127,7 +136,9 @@ export default function Dashboard() {
               
               {weatherData && weatherData.status === "AVAILABLE" && (
                   <div className="bg-white p-4 rounded-lg border border-gray-200 h-[300px]">
-                    <h3 className="font-semibold text-gray-800 mb-4">Historical Prediction vs CHIRPS Reference</h3>
+                    <h3 className="font-semibold text-gray-800 mb-4 flex items-center justify-between">
+                        <span>HISTORICAL EXPERIMENTAL DOWNSCALING</span>
+                    </h3>
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={weatherData.timeseries}>
                             <CartesianGrid strokeDasharray="3 3" />
@@ -138,6 +149,26 @@ export default function Dashboard() {
                             <Line type="monotone" dataKey="era5_rainfall_mm" stroke="#8884d8" name="ERA5 Baseline (Coarse)" dot={false}/>
                             <Line type="monotone" dataKey="downscaled_rainfall_mm" stroke="#82ca9d" name="Experimental XGBoost Downscaled" dot={false}/>
                             <Line type="monotone" dataKey="target_rainfall_mm" stroke="#ff7300" name="CHIRPS Target (Reference)" dot={false}/>
+                        </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+              )}
+              
+              {operationalForecast && operationalForecast.status === "AVAILABLE" && (
+                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200 h-[300px]">
+                    <h3 className="font-semibold text-indigo-900 mb-4 flex items-center justify-between">
+                        <span>7-DAY OPERATIONAL FORECAST</span>
+                        <span className="text-xs font-medium text-white bg-indigo-600 px-2 py-1 rounded">LIVE ECMWF IFS</span>
+                    </h3>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={operationalForecast.forecast}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e0e7ff"/>
+                            <XAxis dataKey="date" tick={{fontSize: 12, fill: '#3730a3'}} />
+                            <YAxis tick={{fontSize: 12, fill: '#3730a3'}} label={{ value: 'Rainfall (mm)', angle: -90, position: 'insideLeft', fill: '#3730a3' }}/>
+                            <RechartsTooltip contentStyle={{backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #c7d2fe'}}/>
+                            <Legend />
+                            <Line type="monotone" dataKey="era5_baseline_input_mm" stroke="#6366f1" strokeWidth={2} name="ECMWF Coarse Input" dot={{fill: '#6366f1', r: 4}}/>
+                            <Line type="monotone" dataKey="final_downscaled_prediction_mm" stroke="#10b981" strokeWidth={3} name="XGBoost Downscaled Forecast" dot={{fill: '#10b981', r: 5}}/>
                         </LineChart>
                     </ResponsiveContainer>
                   </div>

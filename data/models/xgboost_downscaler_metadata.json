@@ -1,0 +1,30 @@
+{
+    "model_version": "xgboost_downscaler_v1",
+    "training_dataset": "panchayat_downscaling_dataset.parquet (Full 2023 ERA5/CHIRPS)",
+    "training_period": "2023-01-01 to 2023-12-31",
+    "feature_schema_version": "1.0",
+    "feature_order": [
+        "era5_rainfall_mm",
+        "elevation_min",
+        "elevation_max",
+        "elevation_mean",
+        "elevation_std",
+        "elevation_p10",
+        "elevation_p50",
+        "elevation_p90",
+        "area_sqkm",
+        "centroid_lat",
+        "centroid_lon",
+        "day_of_year",
+        "month"
+    ],
+    "baseline_method": "ERA5 Representative Centroid Interpolation",
+    "xgboost_parameters": {
+        "n_estimators": 100,
+        "learning_rate": 0.1,
+        "max_depth": 6,
+        "random_state": 42
+    },
+    "validation_evidence": "Phase 6.2 Spatial-Block Cross-Validation (K=5) on physically isolated regions.",
+    "created_at": "2026-09-27T21:26:47.255113+00:00"
+}
