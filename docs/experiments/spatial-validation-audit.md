@@ -18,3 +18,6 @@ In future iterations, implement **Spatial Block Cross-Validation (e.g., k-fold g
 - Divide Pune district into contiguous macroscopic blocks (e.g., North, South, East, West, Central).
 - Hold out a complete, contiguous macroscopic block during testing.
 - This ensures the model is evaluated on its ability to generalize to an entirely new, unseen geographic region rather than interpolating from immediate neighbors.
+
+> [!NOTE]
+> **Update (Phase 6.2):** This recommendation was successfully implemented in Phase 6.2. See [Spatial Block Validation Methodology](file:///C:/Users/Yajat%20Sharma/Desktop/weather/docs/experiments/spatial-block-validation-methodology.md) and [Results](file:///C:/Users/Yajat%20Sharma/Desktop/weather/docs/experiments/spatial-block-validation-results.md). The model retained a 38.45% RMSE improvement under this stringent criteria, supporting true geographic generalization.

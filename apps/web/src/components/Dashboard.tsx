@@ -187,6 +187,22 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
+
+              <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg shadow-sm">
+                <h3 className="font-semibold text-blue-900 mb-2 border-b border-blue-200 pb-2">Model Performance (RMSE Reduction)</h3>
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="bg-white p-3 rounded shadow-sm border border-gray-100">
+                        <div className="text-xs font-bold text-gray-500 uppercase mb-1">Random Panchayat Holdout</div>
+                        <div className="text-2xl font-bold text-blue-600">54.3%</div>
+                        <div className="text-xs text-gray-400 mt-1">Susceptible to spatial autocorrelation</div>
+                    </div>
+                    <div className="bg-white p-3 rounded shadow-sm border border-gray-100">
+                        <div className="text-xs font-bold text-gray-500 uppercase mb-1">Spatial Block Validation</div>
+                        <div className="text-2xl font-bold text-green-600">38.4%</div>
+                        <div className="text-xs text-gray-400 mt-1">Geographically isolated. Experimental.</div>
+                    </div>
+                </div>
+              </div>
             </div>
           )}
 

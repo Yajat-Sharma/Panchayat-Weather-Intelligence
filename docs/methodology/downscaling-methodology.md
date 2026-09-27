@@ -18,9 +18,14 @@ By predicting the residual, the model acts as a physical modifier that learns ho
 - **ERA5 Coarse Input:** Extracted using nearest-neighbor indexing for the geographic centroid of each Gram Panchayat ("Panchayat representative-point sampling").
 - **CHIRPS Reference Target:** Extracted using nearest-neighbor indexing for the geographic centroid of each Gram Panchayat ("Panchayat representative-point sampling").
 
-## 4. Leakage Audit
+## 4. Validation Strategy
+- **Random Spatial Holdout (Phase 6.1):** 20% random holdout of Panchayats. Useful for establishing baseline feasibility (54.3% RMSE reduction). Susceptible to spatial autocorrelation.
+- **Geographic K-Means Spatial Block Validation (Phase 6.2):** K=5 clustering on physical centroids. Strict out-of-fold generalization test on macroscopic regions. Proves true geographic generalization (38.45% pooled RMSE reduction).
+
+## 5. Leakage Audit
 - **Temporal Leakage:** **PASS**. All temporal features (Day of Year) do not contain target-derived information. No moving averages or future interpolations are used.
 - **Feature Leakage:** **PASS**. The residual is used strictly as the `y_train` target during model fitting. It is not fed back into the feature space (`X_train`). No target-derived metrics (climatologies of the target) are used as predictors.
+- **Spatial Leakage:** **PASS**. By utilizing the K-Means geographic spatial block validation (Phase 6.2), neighbors are grouped into identical folds, preventing spatial autocorrelation interpolation.
 - **Feature Classification:**
   - `era5_rainfall_mm`: COARSE WEATHER
   - `elevation_min`, `elevation_max`, `elevation_mean`, `elevation_std`, `elevation_p10`, `elevation_p50`, `elevation_p90`: TERRAIN
