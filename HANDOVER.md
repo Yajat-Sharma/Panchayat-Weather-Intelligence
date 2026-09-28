@@ -68,6 +68,7 @@ apps/
 | 7.1 | Inference Audit & Input Compatibility | COMPLETE |
 | 8 | Operational Forecast Integration | COMPLETE |
 | 9 | UI Productization (SIH Showcase) | COMPLETE |
+| 8.5 | Panchayat-First UX & Farmer Workflows | COMPLETE |
 
 ---
 
@@ -140,21 +141,22 @@ apps/
     - `GET /api/v1/panchayats/{id}/weather/live?date=...&era5_rainfall_mm=...` (Single execution)
     - `POST /api/v1/panchayats/weather/batch` (High-throughput execution)
 - **Frontend (Next.js)**: READY. Available at `http://localhost:3000`. Runs from `apps/web`.
-  - Transformed into "Panchayat Weather Intelligence" SIH Showcase product.
-  - Implemented modular component architecture (`ProjectOverview`, `PanchayatDetail`, `AgriculturalIntelligence`, `ChatbotDrawer`).
-  - Added System Architecture visualization Pipeline.
-  - Added prototype Mock UI for Agricultural Advisory & Risk logic.
-  - Integrated "Ask Panchayat AI Copilot" interface (Prototype frontend layer only).
+  - Shifted to "Panchayat-First" UX.
+  - Added Crop Selector workflow.
+  - Simplified Advisory Cards (Decision-support Prototypes).
+  - Abstracted technical ML metrics into an expandable "Data & Model" accordion for advanced users/judges.
+  - Integrated "Ask Panchayat AI Copilot" prototype with selected Panchayat and Crop context.
 
 ---
 
 ## 11. Last Completed Work
-- Phase 9 UI Productization completed.
-- Refactored `Dashboard.tsx` into modular Next.js components.
-- Styled map, weather intelligence cards, validation charts, and methodology panels.
-- Designed prototype components (`AgriculturalIntelligence.tsx`) for future risk/advisory engines.
-- Designed `ChatbotDrawer.tsx` to handle future LLM Copilot queries.
-- Ensured Next.js builds successfully, fixed legacy TypeScript type errors in Map container (`@types/leaflet`).
+- Phase 8.5 Panchayat-First UX completed.
+- Shifted information architecture to prioritize "My Panchayat" identity and simple weather interpretations.
+- Implemented Crop Selector ("What are you growing?").
+- Simplified `AgriculturalIntelligence.tsx` to output dynamic, farmer-friendly risk cards based on context.
+- Grouped dense scientific validation (RMSE, CHIRPS comparisons, ML system architecture) into an expandable `Data & Model` accordion.
+- Upgraded `ChatbotDrawer.tsx` to automatically receive and display the user's selected Panchayat and Crop context.
+- Verified Next.js build and desktop layouts.
 
 ---
 
@@ -166,10 +168,10 @@ apps/
 
 ## 13. Last Updated
 Last updated:
-2026-09-28 14:20
+2026-09-28 14:31
 
 Phase:
-9
+8.5
 
 Status:
-COMPLETE (SIH UI SHOWCASE READY)
+COMPLETE (PANCHAYAT-FIRST UX)

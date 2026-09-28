@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
-import { MessageSquare, X, Send, Bot, User, AlertTriangle } from 'lucide-react';
+import { MessageSquare, X, Send, Bot, User, AlertTriangle, MapPin, Sprout } from 'lucide-react';
 
-export default function ChatbotDrawer() {
+interface Props {
+  selectedGpcode: string | null;
+  panchayatName: string | null;
+  selectedCrop: string | null;
+}
+
+export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedCrop }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<{role: 'bot' | 'user', text: string}[]>([
     { role: 'bot', text: 'Hello! I am your Panchayat Weather Copilot. How can I help you interpret the weather or agricultural data today?' }
@@ -11,8 +17,10 @@ export default function ChatbotDrawer() {
   const suggestedQuestions = [
     "Will it rain tomorrow?",
     "Should I irrigate my crop?",
-    "Why is rainfall risk elevated?",
-    "What does the downscaled value mean?"
+    "Is this week suitable for field activity?",
+    "Why is there a weather alert?",
+    "Explain today's weather.",
+    "Why is the downscaled rainfall different from ERA5?"
   ];
 
   const handleSend = (text: string) => {
@@ -32,16 +40,18 @@ export default function ChatbotDrawer() {
   return (
     <>
       {/* Floating Action Button */}
-      <button 
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-xl shadow-blue-900/20 flex items-center justify-center transition-transform hover:scale-105 z-40 group"
-        aria-label="Ask Panchayat AI"
-      >
-        <MessageSquare size={24} />
-        <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 ease-in-out font-medium group-hover:ml-3 group-hover:mr-1">
-          Ask Panchayat AI
-        </span>
-      </button>
+      {selectedGpcode && (
+        <button 
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-xl shadow-blue-900/20 flex items-center justify-center transition-transform hover:scale-105 z-40 group"
+          aria-label="Ask Panchayat AI"
+        >
+          <MessageSquare size={24} />
+          <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 ease-in-out font-medium group-hover:ml-3 group-hover:mr-1">
+            Ask Panchayat AI
+          </span>
+        </button>
+      )}
 
       {/* Drawer Overlay */}
       {isOpen && (
@@ -57,19 +67,31 @@ export default function ChatbotDrawer() {
         {/* Header */}
         <div className="bg-blue-600 p-5 text-white flex justify-between items-start shrink-0">
           <div>
-            <h2 className="font-bold text-lg flex items-center gap-2"><Bot size={20}/> Panchayat Weather Copilot</h2>
-            <p className="text-blue-100 text-sm mt-1">Ask about weather, rainfall, and agricultural conditions.</p>
+            <h2 className="font-bold text-lg flex items-center gap-2"><Bot size={20}/> Panchayat Copilot</h2>
+            <p className="text-blue-100 text-sm mt-1">Ask about weather and agriculture.</p>
           </div>
           <button onClick={() => setIsOpen(false)} className="text-blue-100 hover:text-white bg-blue-700/50 p-1 rounded-md">
             <X size={20} />
           </button>
         </div>
 
+        {/* Context Bar */}
+        <div className="bg-blue-50 px-4 py-2 border-b border-blue-100 flex items-center gap-3 shrink-0 text-xs overflow-x-auto whitespace-nowrap">
+          <div className="flex items-center gap-1.5 text-blue-800 bg-blue-100/50 px-2 py-1 rounded">
+             <MapPin size={12}/> 
+             <span className="font-semibold truncate max-w-[120px]">{panchayatName || "No Panchayat"}</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-emerald-800 bg-emerald-100/50 px-2 py-1 rounded">
+             <Sprout size={12}/> 
+             <span className="font-semibold">{selectedCrop || "Select a crop"}</span>
+          </div>
+        </div>
+
         {/* Prototype Warning */}
         <div className="bg-amber-50 border-b border-amber-200 p-3 flex items-start gap-3 shrink-0">
           <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={16} />
           <div className="text-xs text-amber-800">
-            <strong>Prototype Interface:</strong> The conversational AI backend is planned for the next development phase.
+            <strong>Prototype Interface:</strong> Conversational AI backend planned for the next development phase.
           </div>
         </div>
 
@@ -95,7 +117,7 @@ export default function ChatbotDrawer() {
               <button 
                 key={i} 
                 onClick={() => handleSend(q)}
-                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 px-3 rounded-full transition-colors border border-gray-200"
+                className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 px-3 rounded-full transition-colors border border-gray-200 text-left leading-tight"
               >
                 {q}
               </button>

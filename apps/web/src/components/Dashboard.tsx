@@ -24,6 +24,8 @@ export default function Dashboard() {
   const [operationalForecast, setOperationalForecast] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  const [selectedCrop, setSelectedCrop] = useState<string | null>(null);
+
   useEffect(() => {
     async function fetchData() {
       try {
@@ -80,20 +82,25 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col h-screen bg-gray-50 text-gray-900 font-sans">
       <header className="bg-white border-b px-6 py-4 flex items-center justify-between shadow-sm z-10">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900 flex items-center gap-2 tracking-tight">
-            <CloudRain className="text-blue-600" size={28} />
-            Panchayat Weather Intelligence
-          </h1>
-          <p className="text-sm text-gray-500 mt-1 font-medium">From Coarse Weather to Panchayat-Level Intelligence.</p>
+        <div className="flex items-center gap-8">
+          <div>
+            <h1 className="text-xl font-black text-gray-900 flex items-center gap-2 tracking-tight">
+              <CloudRain className="text-blue-600" size={24} />
+              Panchayat Weather
+            </h1>
+          </div>
+          
+          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-500">
+             <a href="#" className="text-blue-600 border-b-2 border-blue-600 pb-1">My Panchayat</a>
+             <a href="#" className="hover:text-gray-900">Map</a>
+             <a href="#" className="hover:text-gray-900">Advisory</a>
+             <a href="#" className="hover:text-gray-900">AI Copilot</a>
+          </nav>
         </div>
         
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm bg-blue-50 text-blue-700 px-3 py-1.5 rounded-full border border-blue-100 font-medium">
-             <MapPin size={16}/> Pune, Maharashtra
-          </div>
-          <div className="flex items-center gap-2 text-sm bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200 font-medium">
-             Prototype System
+          <div className="flex items-center gap-2 text-sm bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200 font-bold tracking-wide uppercase text-[10px]">
+             Prototype / Next-Gen
           </div>
         </div>
       </header>
@@ -114,6 +121,8 @@ export default function Dashboard() {
               weatherData={weatherData}
               operationalForecast={operationalForecast}
               onClose={() => setSelectedGpcode(null)}
+              selectedCrop={selectedCrop}
+              setSelectedCrop={setSelectedCrop}
             />
           ) : (
             <ProjectOverview />
@@ -123,7 +132,11 @@ export default function Dashboard() {
       </main>
       
       {/* Ask Panchayat AI Copilot Drawer */}
-      <ChatbotDrawer />
+      <ChatbotDrawer 
+        selectedGpcode={selectedGpcode} 
+        panchayatName={panchayatDetails?.GPNAME || null} 
+        selectedCrop={selectedCrop} 
+      />
     </div>
   );
 }
