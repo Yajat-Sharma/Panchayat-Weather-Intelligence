@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Droplet, CloudLightning, Sun, ShieldAlert, Sprout, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { Droplet, Sun, ShieldAlert, Sprout, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 
 interface Props {
@@ -15,6 +15,7 @@ export default function AgriculturalIntelligence({ selectedCrop, todayRainfall }
   // Show a brief toast when crop changes
   useEffect(() => {
     if (selectedCrop) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCropToast(true);
       const timer = setTimeout(() => setCropToast(false), 2000);
       return () => clearTimeout(timer);

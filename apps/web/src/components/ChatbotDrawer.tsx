@@ -17,6 +17,7 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
   // Sync with mobile state if provided
   useEffect(() => {
     if (isOpenMobile !== undefined) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsOpen(isOpenMobile);
     }
   }, [isOpenMobile]);

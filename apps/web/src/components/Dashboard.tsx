@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import dynamic from "next/dynamic";
-import { CheckCircle2, XCircle, AlertTriangle, MapPin, Activity, Database, CloudRain, Home, Map as MapIcon, Bot } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
+import { MapPin, CloudRain, Home, Map as MapIcon, Bot } from "lucide-react";
 
 // Dynamically import Map to prevent SSR issues with Leaflet
 const Map = dynamic(() => import("./Map"), { ssr: false });
@@ -23,11 +22,14 @@ type MobileTab = 'home' | 'map' | 'ai';
 export default function Dashboard() {
   const { language, setLanguage, t } = useLanguage();
   
-  const [status, setStatus] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [geojsonData, setGeojsonData] = useState<any>(null);
   const [selectedGpcode, setSelectedGpcode] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [panchayatDetails, setPanchayatDetails] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [weatherData, setWeatherData] = useState<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [operationalForecast, setOperationalForecast] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,11 +40,10 @@ export default function Dashboard() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const [statusRes, geojsonRes] = await Promise.all([
+        const [, geojsonRes] = await Promise.all([
           axios.get(`${API_BASE}/status`),
           axios.get(`${API_BASE}/panchayats`).catch(() => ({ data: null }))
         ]);
-        setStatus(statusRes.data);
         if (geojsonRes.data) {
           setGeojsonData(geojsonRes.data);
         }
@@ -78,8 +79,11 @@ export default function Dashboard() {
           setOperationalForecast(null);
         });
     } else {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setPanchayatDetails(null);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setWeatherData(null);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setOperationalForecast(null);
     }
   }, [selectedGpcode]);

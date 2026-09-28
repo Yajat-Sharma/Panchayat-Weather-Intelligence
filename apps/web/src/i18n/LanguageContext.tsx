@@ -19,6 +19,7 @@ export const LanguageProvider = ({ children }: { children: React.ReactNode }) =>
     // Check localStorage on mount
     const saved = localStorage.getItem('panchayat_language') as LanguageCode;
     if (saved && (saved === 'en' || saved === 'hi' || saved === 'mr')) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLanguageState(saved);
     }
     setMounted(true);
