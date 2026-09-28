@@ -139,26 +139,26 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
 
       {/* Drawer Panel */}
       {/* Mobile: 100% width, Desktop: 400px. Respects safe-area on mobile. */}
-      <div className={`fixed top-0 right-0 h-full w-full md:w-[400px] bg-white shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed top-0 right-0 h-full w-full md:w-[400px] bg-white dark:bg-gray-950 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         
         {/* Header */}
-        <div className="bg-blue-600 p-4 md:p-5 text-white flex justify-between items-start shrink-0 pt-[calc(1rem+env(safe-area-inset-top))]">
+        <div className="bg-blue-600 dark:bg-blue-700 p-4 md:p-5 text-white flex justify-between items-start shrink-0 pt-[calc(1rem+env(safe-area-inset-top))]">
           <div>
             <h2 className="font-bold text-base md:text-lg flex items-center gap-2"><Bot size={20}/> {t('nav.aiCopilot')}</h2>
             <p className="text-blue-100 text-xs md:text-sm mt-1">{t('ai.subtitle')}</p>
           </div>
-          <button onClick={handleClose} className="text-blue-100 hover:text-white bg-blue-700/50 p-1 rounded-md">
+          <button onClick={handleClose} className="text-blue-100 hover:text-white bg-blue-700/50 dark:bg-blue-800/50 p-1 rounded-md transition-colors">
             <X size={20} />
           </button>
         </div>
 
         {/* Context Bar */}
-        <div className="bg-blue-50 px-4 py-2 border-b border-blue-100 flex items-center gap-3 shrink-0 text-[10px] md:text-xs overflow-x-auto whitespace-nowrap hide-scrollbar">
-          <div className="flex items-center gap-1.5 text-blue-800 bg-blue-100/50 px-2 py-1 rounded">
+        <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-2 border-b border-blue-100 dark:border-blue-900/50 flex items-center gap-3 shrink-0 text-[10px] md:text-xs overflow-x-auto whitespace-nowrap hide-scrollbar transition-colors">
+          <div className="flex items-center gap-1.5 text-blue-800 dark:text-blue-300 bg-blue-100/50 dark:bg-blue-900/40 px-2 py-1 rounded">
              <MapPin size={12}/> 
              <span className="font-semibold truncate max-w-[150px]">{panchayatName || "No Panchayat"}</span>
           </div>
-          <div className="flex items-center gap-1.5 text-emerald-800 bg-emerald-100/50 px-2 py-1 rounded">
+          <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 bg-emerald-100/50 dark:bg-emerald-900/40 px-2 py-1 rounded">
              <Sprout size={12}/> 
              <span className="font-semibold">{selectedCrop ? t(`ag.${selectedCrop.toLowerCase()}`) : "Select a crop"}</span>
           </div>
@@ -167,26 +167,26 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
         {/* Removed Prototype Warning */}
 
         {/* Chat History */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-5 flex flex-col gap-4 bg-gray-50 pb-4">
+        <div className="flex-1 overflow-y-auto p-4 md:p-5 flex flex-col gap-4 bg-gray-50 dark:bg-gray-900 pb-4 transition-colors">
           {messages.map((msg, i) => (
             <div key={i} className={`flex gap-2 md:gap-3 max-w-[90%] md:max-w-[85%] ${msg.role === 'user' ? 'self-end flex-row-reverse' : 'self-start'}`}>
-              <div className={`shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center ${msg.role === 'user' ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
+              <div className={`shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center ${msg.role === 'user' ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400' : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'}`}>
                 {msg.role === 'user' ? <User size={14}/> : <Bot size={14}/>}
               </div>
-              <div className={`p-3 rounded-2xl text-[13px] md:text-sm shadow-sm whitespace-pre-wrap ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm'}`}>
+              <div className={`p-3 rounded-2xl text-[13px] md:text-sm shadow-sm whitespace-pre-wrap ${msg.role === 'user' ? 'bg-indigo-600 dark:bg-indigo-700 text-white rounded-tr-sm' : 'bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-sm'}`}>
                 {msg.text}
               </div>
             </div>
           ))}
           {isLoading && (
             <div className="flex gap-2 md:gap-3 max-w-[90%] md:max-w-[85%] self-start">
-              <div className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center bg-blue-100 text-blue-700">
+              <div className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400">
                 <Loader2 size={14} className="animate-spin"/>
               </div>
-              <div className="p-3 rounded-2xl text-[13px] md:text-sm shadow-sm bg-white border border-gray-200 text-gray-500 rounded-tl-sm flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></span>
-                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></span>
+              <div className="p-3 rounded-2xl text-[13px] md:text-sm shadow-sm bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 rounded-tl-sm flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-600 rounded-full animate-bounce"></span>
+                <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></span>
+                <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-600 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></span>
               </div>
             </div>
           )}
@@ -194,14 +194,14 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
         </div>
 
         {/* Suggested Questions */}
-        <div className="p-3 bg-white border-t border-gray-100 shrink-0">
-          <div className="text-[10px] md:text-xs font-semibold text-gray-400 mb-2 uppercase tracking-widest">{t('ai.suggested')}</div>
+        <div className="p-3 bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800 shrink-0 transition-colors">
+          <div className="text-[10px] md:text-xs font-semibold text-gray-400 dark:text-gray-500 mb-2 uppercase tracking-widest">{t('ai.suggested')}</div>
           <div className="flex overflow-x-auto gap-2 pb-1 hide-scrollbar snap-x">
             {suggestedQuestions.map((q, i) => (
               <button 
                 key={i} 
                 onClick={() => handleSend(q)}
-                className="snap-start shrink-0 text-[11px] md:text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 py-1.5 px-3 rounded-full transition-colors border border-gray-200 text-left whitespace-nowrap"
+                className="snap-start shrink-0 text-[11px] md:text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-full transition-colors border border-gray-200 dark:border-gray-700 text-left whitespace-nowrap"
               >
                 {q}
               </button>
@@ -211,14 +211,14 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
 
         {/* Input Area */}
         {/* pb-[env(safe-area-inset-bottom)] ensures it stays above iOS home bar */}
-        <div className="p-3 md:p-4 bg-white border-t border-gray-200 shrink-0 flex items-center gap-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+        <div className="p-3 md:p-4 bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 shrink-0 flex items-center gap-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] transition-colors">
           <input 
             type="text" 
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
             placeholder={t('ai.placeholder')}
-            className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-[13px] md:text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-gray-50"
+            className="flex-1 border border-gray-300 dark:border-gray-700 rounded-full px-4 py-2 text-[13px] md:text-sm focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
           />
           <button 
             onClick={() => handleSend(input)}

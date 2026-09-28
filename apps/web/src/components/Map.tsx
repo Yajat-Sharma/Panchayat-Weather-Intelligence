@@ -26,19 +26,21 @@ export default function Map({ geojsonData, selectedGpcode, onSelectPanchayat }: 
     setMounted(true);
   }, []);
 
-  if (!mounted) return <div className="h-full w-full flex items-center justify-center bg-gray-100">Loading Map...</div>;
+  if (!mounted) return <div className="h-full w-full flex items-center justify-center bg-gray-100 dark:bg-gray-900 text-gray-500 dark:text-gray-400">Loading Map...</div>;
 
   return (
-    <div className="h-full w-full border rounded shadow-sm overflow-hidden">
+    <div className="h-full w-full border border-gray-200 dark:border-gray-800 rounded shadow-sm overflow-hidden">
       <MapContainer
         center={[18.5204, 73.8567]} // Pune
         zoom={9}
         scrollWheelZoom={true}
         style={{ height: "100%", width: "100%", zIndex: 0 }}
+        className="bg-gray-50 dark:bg-gray-900"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          className="dark:invert dark:hue-rotate-180 dark:brightness-95 dark:contrast-105 transition-all duration-300"
         />
         
         {geojsonData && (
