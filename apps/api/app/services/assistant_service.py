@@ -23,7 +23,7 @@ class AssistantService:
             
         if not self.llm:
             return {
-                "answer": "The Panchayat AI is temporarily unavailable due to missing LLM configuration (e.g. GEMINI_API_KEY).",
+                "answer": "The Panchayat AI is temporarily unavailable due to missing LLM configuration (e.g. GROQ_API_KEY).",
                 "panchayat": {"gpcode": gpcode},
                 "context_used": [],
                 "disclaimer": "System configuration error."
