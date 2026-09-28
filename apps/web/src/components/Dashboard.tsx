@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import dynamic from "next/dynamic";
-import { CheckCircle2, XCircle, AlertTriangle, MapPin, Activity, Database, CloudRain } from "lucide-react";
+import { CheckCircle2, XCircle, AlertTriangle, MapPin, Activity, Database, CloudRain, Home, Map as MapIcon, Bot } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 
 // Dynamically import Map to prevent SSR issues with Leaflet
@@ -15,6 +15,8 @@ import ProjectOverview from "./ProjectOverview";
 import PanchayatDetail from "./PanchayatDetail";
 import ChatbotDrawer from "./ChatbotDrawer";
 
+type MobileTab = 'home' | 'map' | 'ai';
+
 export default function Dashboard() {
   const [status, setStatus] = useState<any>(null);
   const [geojsonData, setGeojsonData] = useState<any>(null);
@@ -25,6 +27,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   const [selectedCrop, setSelectedCrop] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<MobileTab>('home');
+  const [isAiOpen, setIsAiOpen] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -79,12 +83,18 @@ export default function Dashboard() {
     return <div className="flex h-screen items-center justify-center bg-gray-50 text-gray-500 font-medium">Loading Panchayat Weather Intelligence platform...</div>;
   }
 
+  // Determine visibility logic based on responsive state
+  const isMapVisibleMobile = activeTab === 'map';
+  const isHomeVisibleMobile = activeTab === 'home';
+
   return (
-    <div className="flex flex-col h-screen bg-gray-50 text-gray-900 font-sans">
-      <header className="bg-white border-b px-6 py-4 flex items-center justify-between shadow-sm z-10">
+    <div className="flex flex-col h-screen bg-gray-50 text-gray-900 font-sans overflow-hidden">
+      
+      {/* HEADER */}
+      <header className="bg-white border-b px-4 md:px-6 py-3 md:py-4 flex items-center justify-between shadow-sm z-10 shrink-0">
         <div className="flex items-center gap-8">
           <div>
-            <h1 className="text-xl font-black text-gray-900 flex items-center gap-2 tracking-tight">
+            <h1 className="text-lg md:text-xl font-black text-gray-900 flex items-center gap-2 tracking-tight">
               <CloudRain className="text-blue-600" size={24} />
               Panchayat Weather
             </h1>
@@ -99,43 +109,102 @@ export default function Dashboard() {
         </div>
         
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-sm bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200 font-bold tracking-wide uppercase text-[10px]">
+          <div className="hidden md:flex items-center gap-2 text-sm bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200 font-bold tracking-wide uppercase text-[10px]">
              Prototype / Next-Gen
           </div>
         </div>
       </header>
 
-      <main className="flex-1 flex overflow-hidden">
-        <section className="flex-1 relative p-4">
-          <div className="absolute inset-4 rounded-2xl overflow-hidden shadow-inner border border-gray-200">
-             <Map geojsonData={geojsonData} onSelectPanchayat={setSelectedGpcode} />
+      {/* MAIN CONTENT AREA */}
+      <main className="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+        
+        {/* Map Section - Full width on mobile when map tab is active, always visible on desktop taking remaining flex space */}
+        <section className={`flex-1 relative p-0 md:p-4 ${isMapVisibleMobile ? 'block' : 'hidden md:block'}`}>
+          <div className="absolute inset-0 md:inset-4 md:rounded-2xl overflow-hidden md:shadow-inner md:border border-gray-200 z-0">
+             <Map 
+               geojsonData={geojsonData} 
+               onSelectPanchayat={(gpcode) => {
+                 setSelectedGpcode(gpcode);
+                 setActiveTab('home'); // Auto-switch to home tab on mobile when a Panchayat is selected
+               }} 
+             />
           </div>
+          {/* Mobile floating prompt over map if no panchayat selected */}
+          {!selectedGpcode && isMapVisibleMobile && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur px-4 py-2 rounded-full shadow-lg border border-gray-200 text-sm font-bold text-gray-800 z-[400] md:hidden flex items-center gap-2">
+              <MapPin size={16} className="text-red-500"/>
+              Tap a Panchayat
+            </div>
+          )}
         </section>
 
-        <aside className="w-[650px] bg-white border-l overflow-y-auto p-8 shadow-[-4px_0_25px_rgba(0,0,0,0.05)] z-10 relative">
-          
+        {/* Aside Panel (Panchayat Details / Explore) */}
+        {/* On Mobile: Absolute full screen over map if Home is active. On Desktop: Fixed 650px width. */}
+        <aside className={`
+          w-full md:w-[650px] 
+          bg-white md:border-l 
+          overflow-y-auto 
+          shadow-[-4px_0_25px_rgba(0,0,0,0.05)] 
+          z-10 relative 
+          pb-20 md:pb-0
+          ${isHomeVisibleMobile ? 'block' : 'hidden md:block'}
+        `}>
           {selectedGpcode && panchayatDetails ? (
             <PanchayatDetail 
               selectedGpcode={selectedGpcode}
               panchayatDetails={panchayatDetails}
               weatherData={weatherData}
               operationalForecast={operationalForecast}
-              onClose={() => setSelectedGpcode(null)}
+              onClose={() => {
+                setSelectedGpcode(null);
+                setActiveTab('map');
+              }}
               selectedCrop={selectedCrop}
               setSelectedCrop={setSelectedCrop}
             />
           ) : (
             <ProjectOverview />
           )}
-
         </aside>
+
       </main>
+
+      {/* MOBILE BOTTOM NAVIGATION */}
+      <div className="md:hidden bg-white border-t border-gray-200 fixed bottom-0 left-0 right-0 z-[1000] pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-center justify-around h-16">
+          <button 
+            onClick={() => setActiveTab('home')}
+            className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${activeTab === 'home' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+          >
+            <Home size={22} className={activeTab === 'home' ? 'fill-blue-100' : ''} />
+            <span className="text-[10px] font-bold">Home</span>
+          </button>
+          <button 
+            onClick={() => setActiveTab('map')}
+            className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${activeTab === 'map' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
+          >
+            <MapIcon size={22} className={activeTab === 'map' ? 'fill-blue-100' : ''} />
+            <span className="text-[10px] font-bold">Map</span>
+          </button>
+          <button 
+            onClick={() => setIsAiOpen(true)}
+            className="flex flex-col items-center justify-center w-full h-full space-y-1 text-gray-500 hover:text-gray-900"
+          >
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full p-2 text-white shadow-md transform -translate-y-2">
+              <Bot size={22} />
+            </div>
+            <span className="text-[10px] font-bold transform -translate-y-1">Ask AI</span>
+          </button>
+        </div>
+      </div>
       
       {/* Ask Panchayat AI Copilot Drawer */}
       <ChatbotDrawer 
         selectedGpcode={selectedGpcode} 
         panchayatName={panchayatDetails?.GPNAME || null} 
-        selectedCrop={selectedCrop} 
+        selectedCrop={selectedCrop}
+        isOpenMobile={isAiOpen}
+        setIsOpenMobile={setIsAiOpen}
       />
     </div>
   );

@@ -69,6 +69,7 @@ apps/
 | 8 | Operational Forecast Integration | COMPLETE |
 | 9 | UI Productization (SIH Showcase) | COMPLETE |
 | 8.5 | Panchayat-First UX & Farmer Workflows | COMPLETE |
+| 8.5+ | Mobile-First Responsive Product | COMPLETE |
 
 ---
 
@@ -141,22 +142,23 @@ apps/
     - `GET /api/v1/panchayats/{id}/weather/live?date=...&era5_rainfall_mm=...` (Single execution)
     - `POST /api/v1/panchayats/weather/batch` (High-throughput execution)
 - **Frontend (Next.js)**: READY. Available at `http://localhost:3000`. Runs from `apps/web`.
-  - Shifted to "Panchayat-First" UX.
-  - Added Crop Selector workflow.
-  - Simplified Advisory Cards (Decision-support Prototypes).
+  - Shifted to "Panchayat-First" Mobile-Responsive UX.
+  - Added Crop Selector workflow with touch-friendly navigation.
+  - Implemented responsive mobile layout (bottom nav, safe-areas, full-screen Chatbot drawer).
   - Abstracted technical ML metrics into an expandable "Data & Model" accordion for advanced users/judges.
   - Integrated "Ask Panchayat AI Copilot" prototype with selected Panchayat and Crop context.
 
 ---
 
 ## 11. Last Completed Work
-- Phase 8.5 Panchayat-First UX completed.
+- Phase 8.5 Addendum: Mobile-First Responsive Product completed.
 - Shifted information architecture to prioritize "My Panchayat" identity and simple weather interpretations.
-- Implemented Crop Selector ("What are you growing?").
-- Simplified `AgriculturalIntelligence.tsx` to output dynamic, farmer-friendly risk cards based on context.
-- Grouped dense scientific validation (RMSE, CHIRPS comparisons, ML system architecture) into an expandable `Data & Model` accordion.
-- Upgraded `ChatbotDrawer.tsx` to automatically receive and display the user's selected Panchayat and Crop context.
-- Verified Next.js build and desktop layouts.
+- Implemented Crop Selector ("What are you growing?") with horizontal mobile scrolling.
+- Re-architected `Dashboard.tsx` to handle true responsive layout toggling (Map vs Detail) on mobile screens.
+- Added persistent bottom navigation (`Home`, `Map`, `Ask AI`) for touch-friendly mobile routing.
+- Scaled typography, paddings, and charts (`AgriculturalIntelligence.tsx`, `PanchayatDetail.tsx`) to fit strictly within 320px+ viewports with no horizontal overflow.
+- Upgraded `ChatbotDrawer.tsx` to a full-screen, keyboard-safe drawer on mobile devices, while retaining the 400px side panel for desktop.
+- Verified Next.js build and responsive grid layouts.
 
 ---
 
@@ -168,10 +170,10 @@ apps/
 
 ## 13. Last Updated
 Last updated:
-2026-09-28 14:31
+2026-09-28 14:40
 
 Phase:
-8.5
+8.5+ (Mobile-First)
 
 Status:
-COMPLETE (PANCHAYAT-FIRST UX)
+COMPLETE (TRUE RESPONSIVE)
