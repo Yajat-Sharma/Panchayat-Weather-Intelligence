@@ -267,6 +267,7 @@ class MessageHistory(BaseModel):
 class CopilotRequest(BaseModel):
     gpcode: str
     crop: str = None
+    language: str = "en"
     message: str
     history: List[MessageHistory] = []
 
@@ -284,6 +285,7 @@ def post_assistant_chat(request: CopilotRequest):
     response = assistant.chat(
         gpcode=request.gpcode,
         crop=request.crop,
+        language=request.language,
         message=request.message,
         history=history_dicts
     )

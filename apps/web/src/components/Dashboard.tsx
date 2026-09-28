@@ -14,10 +14,14 @@ const API_BASE = "http://localhost:8000/api/v1";
 import ProjectOverview from "./ProjectOverview";
 import PanchayatDetail from "./PanchayatDetail";
 import ChatbotDrawer from "./ChatbotDrawer";
+import { useLanguage } from "../i18n/LanguageContext";
+import { LanguageCode } from "../i18n/translations";
 
 type MobileTab = 'home' | 'map' | 'ai';
 
 export default function Dashboard() {
+  const { language, setLanguage, t } = useLanguage();
+  
   const [status, setStatus] = useState<any>(null);
   const [geojsonData, setGeojsonData] = useState<any>(null);
   const [selectedGpcode, setSelectedGpcode] = useState<string | null>(null);
@@ -80,7 +84,7 @@ export default function Dashboard() {
   }, [selectedGpcode]);
 
   if (loading) {
-    return <div className="flex h-screen items-center justify-center bg-gray-50 text-gray-500 font-medium">Loading Panchayat Weather Intelligence platform...</div>;
+    return <div className="flex h-screen items-center justify-center bg-gray-50 text-gray-500 font-medium">{t('sys.loading')}</div>;
   }
 
   // Determine visibility logic based on responsive state
@@ -96,21 +100,36 @@ export default function Dashboard() {
           <div>
             <h1 className="text-lg md:text-xl font-black text-gray-900 flex items-center gap-2 tracking-tight">
               <CloudRain className="text-blue-600" size={24} />
-              Panchayat Weather
+              {t('nav.title')}
             </h1>
           </div>
           
           <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-500">
-             <a href="#" className="text-blue-600 border-b-2 border-blue-600 pb-1">My Panchayat</a>
-             <a href="#" className="hover:text-gray-900">Map</a>
-             <a href="#" className="hover:text-gray-900">Advisory</a>
-             <a href="#" className="hover:text-gray-900">AI Copilot</a>
+             <a href="#" className="text-blue-600 border-b-2 border-blue-600 pb-1">{t('nav.myPanchayat')}</a>
+             <a href="#" className="hover:text-gray-900">{t('nav.map')}</a>
+             <a href="#" className="hover:text-gray-900">{t('nav.advisory')}</a>
+             <button onClick={() => setIsAiOpen(true)} className="hover:text-gray-900">{t('nav.aiCopilot')}</button>
           </nav>
         </div>
         
         <div className="flex items-center gap-4">
+          <div className="relative flex items-center bg-gray-100 hover:bg-gray-200 transition-colors rounded-full px-2 py-1">
+             <select 
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as LanguageCode)}
+                className="appearance-none bg-transparent text-gray-800 text-xs font-bold pl-2 pr-6 outline-none cursor-pointer"
+                aria-label="Select language"
+              >
+                <option value="en">EN</option>
+                <option value="hi">हिंदी</option>
+                <option value="mr">मराठी</option>
+             </select>
+             <div className="pointer-events-none absolute right-2 text-gray-500">
+               <svg className="fill-current h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+             </div>
+          </div>
           <div className="hidden md:flex items-center gap-2 text-sm bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full border border-amber-200 font-bold tracking-wide uppercase text-[10px]">
-             Prototype / Next-Gen
+             {t('sys.prototype')}
           </div>
         </div>
       </header>
@@ -123,6 +142,7 @@ export default function Dashboard() {
           <div className="absolute inset-0 md:inset-4 md:rounded-2xl overflow-hidden md:shadow-inner md:border border-gray-200 z-0">
              <Map 
                geojsonData={geojsonData} 
+               selectedGpcode={selectedGpcode}
                onSelectPanchayat={(gpcode) => {
                  setSelectedGpcode(gpcode);
                  setActiveTab('home'); // Auto-switch to home tab on mobile when a Panchayat is selected
@@ -184,7 +204,7 @@ export default function Dashboard() {
             className={`flex flex-col items-center justify-center w-full h-full space-y-1 ${activeTab === 'map' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'}`}
           >
             <MapIcon size={22} className={activeTab === 'map' ? 'fill-blue-100' : ''} />
-            <span className="text-[10px] font-bold">Map</span>
+            <span className="text-[10px] font-bold">{t('nav.map')}</span>
           </button>
           <button 
             onClick={() => setIsAiOpen(true)}
@@ -193,7 +213,7 @@ export default function Dashboard() {
             <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full p-2 text-white shadow-md transform -translate-y-2">
               <Bot size={22} />
             </div>
-            <span className="text-[10px] font-bold transform -translate-y-1">Ask AI</span>
+            <span className="text-[10px] font-bold transform -translate-y-1">{t('nav.aiCopilot')}</span>
           </button>
         </div>
       </div>

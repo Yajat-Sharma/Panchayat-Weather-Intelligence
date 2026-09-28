@@ -70,6 +70,8 @@ apps/
 | 9 | UI Productization (SIH Showcase) | COMPLETE |
 | 8.5 | Panchayat-First UX & Farmer Workflows | COMPLETE |
 | 8.5+ | Mobile-First Responsive Product | COMPLETE |
+| 11 | Final Scientific + End-to-End SIH Audit | COMPLETE |
+| 11.5 | Interactive Product Experience | COMPLETE |
 
 ---
 
@@ -151,14 +153,15 @@ apps/
 ---
 
 ## 11. Last Completed Work
-- Phase 11: Final Scientific + End-to-End SIH Audit completed.
-- **Operational Forecast Audit:** Documented the live Open-Meteo inference pathway.
-  - *Source:* ECMWF IFS 0.25° via Open-Meteo API.
-  - *Variable:* `precipitation_sum` (daily).
-  - *Distribution Shift:* Acknowledged that using operational ECMWF as input for a model trained on historical ERA5 is a prototype inference pathway requiring future observational validation.
-- **Grounding Audit:** Verified the Panchayat AI Copilot strictly uses retrieved downscaled data and safely handles missing forecasts (no hallucinations).
-- **Non-negative Output:** Verified `max(0, raw_prediction)` clipping in `inference.py`.
-- **Documentation:** Updated README.md and created `docs/sih-demo-flow.md` with SIH-approved pitching terminology.
+- Phase 11.5: Interactive Product Experience completed.
+- **Interaction & UX:**
+  - Implemented persistent map selection highlighting (`Map.tsx`).
+  - Added interactive 7-day weather timeline that dynamically updates the main weather display upon click (`PanchayatDetail.tsx`).
+  - Created expandable "Today's Weather" card with detailed metrics.
+  - Designed a visual step-by-step flow explaining the AI downscaling process.
+  - Implemented progressive disclosure for Agricultural Advisories, with a subtle toast notification when crop context changes (`AgriculturalIntelligence.tsx`).
+  - Verified visual context bar in AI Copilot so users know it is grounded in their specific Panchayat and Crop (`ChatbotDrawer.tsx`).
+- **Hotfix:** Resolved frontend compilation error (unterminated regexp literal caused by an orphaned closing tag) in `AgriculturalIntelligence.tsx`; verified production build.
 
 ---
 
@@ -169,10 +172,10 @@ apps/
 
 ## 13. Last Updated
 Last updated:
-2026-09-28 14:55
+2026-09-28
 
 Phase:
-11
+11.5
 
 Status:
-COMPLETE (FINAL SIH AUDIT)
+COMPLETE (INTERACTIVE PRODUCT UX)

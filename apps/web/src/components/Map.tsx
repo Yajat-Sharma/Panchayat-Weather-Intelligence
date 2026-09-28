@@ -15,10 +15,11 @@ L.Icon.Default.mergeOptions({
 
 interface MapProps {
   geojsonData: GeoJsonObject | null;
+  selectedGpcode?: string | null;
   onSelectPanchayat: (gpcode: string) => void;
 }
 
-export default function Map({ geojsonData, onSelectPanchayat }: MapProps) {
+export default function Map({ geojsonData, selectedGpcode, onSelectPanchayat }: MapProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -43,30 +44,39 @@ export default function Map({ geojsonData, onSelectPanchayat }: MapProps) {
         {geojsonData && (
           <GeoJSON
             data={geojsonData}
-            style={() => ({
-              color: "#3b82f6",
-              weight: 1,
-              fillColor: "#93c5fd",
-              fillOpacity: 0.2,
-            })}
+            style={(feature) => {
+              const isSelected = feature?.properties?.GPCODE && String(Math.floor(feature.properties.GPCODE)) === selectedGpcode;
+              return {
+                color: isSelected ? "#1d4ed8" : "#3b82f6",
+                weight: isSelected ? 2 : 1,
+                fillColor: isSelected ? "#3b82f6" : "#93c5fd",
+                fillOpacity: isSelected ? 0.6 : 0.2,
+              };
+            }}
             onEachFeature={(feature, layer) => {
               layer.on({
                 mouseover: (e) => {
-                  const layer = e.target;
-                  layer.setStyle({
-                    fillOpacity: 0.5,
-                    weight: 2,
-                    color: "#1d4ed8"
-                  });
+                  const isSelected = feature?.properties?.GPCODE && String(Math.floor(feature.properties.GPCODE)) === selectedGpcode;
+                  if (!isSelected) {
+                    const l = e.target;
+                    l.setStyle({
+                      fillOpacity: 0.5,
+                      weight: 2,
+                      color: "#1d4ed8"
+                    });
+                  }
                 },
                 mouseout: (e) => {
-                  const layer = e.target;
-                  layer.setStyle({
-                    color: "#3b82f6",
-                    weight: 1,
-                    fillColor: "#93c5fd",
-                    fillOpacity: 0.2,
-                  });
+                  const isSelected = feature?.properties?.GPCODE && String(Math.floor(feature.properties.GPCODE)) === selectedGpcode;
+                  if (!isSelected) {
+                    const l = e.target;
+                    l.setStyle({
+                      color: "#3b82f6",
+                      weight: 1,
+                      fillColor: "#93c5fd",
+                      fillOpacity: 0.2,
+                    });
+                  }
                 },
                 click: (e) => {
                   const gpcode = feature.properties?.GPCODE;

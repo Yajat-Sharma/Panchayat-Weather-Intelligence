@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { MapPin, Activity, Database, CheckCircle2, TrendingUp, Info, ChevronDown, ChevronUp, CloudRain, Thermometer, Wind, Droplet, Sun } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import AgriculturalIntelligence from './AgriculturalIntelligence';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface Props {
   selectedGpcode: string;
@@ -18,13 +19,20 @@ const CROPS = ["Rice", "Soybean", "Maize", "Vegetables", "Sugarcane"];
 export default function PanchayatDetail({ 
   selectedGpcode, panchayatDetails, weatherData, operationalForecast, onClose, selectedCrop, setSelectedCrop 
 }: Props) {
+  const { t, language } = useLanguage();
+
   
   const [showDataModel, setShowDataModel] = useState(false);
   const [showExplain, setShowExplain] = useState(false);
+  const [selectedDayIndex, setSelectedDayIndex] = useState(0);
+  const [weatherCardExpanded, setWeatherCardExpanded] = useState(false);
 
-  // Extract today's forecast
-  const todayForecast = operationalForecast?.forecast?.[0];
-  const todayRainfall = todayForecast?.final_downscaled_prediction_mm || 0;
+  // Extract selected forecast
+  const selectedForecast = operationalForecast?.forecast?.[selectedDayIndex];
+  const selectedRainfall = selectedForecast?.final_downscaled_prediction_mm || 0;
+  
+  // Use today's info if it's the 0th index, otherwise just state the date.
+  const isToday = selectedDayIndex === 0;
 
   const getWeatherInterpretation = (rainfall: number) => {
     if (rainfall > 30) return "Heavy rainfall expected. High risk for outdoor activities and potential waterlogging.";
@@ -33,7 +41,7 @@ export default function PanchayatDetail({
     return "Dry conditions. Monitor soil moisture for irrigation needs.";
   };
 
-  const interpretation = getWeatherInterpretation(todayRainfall);
+  const interpretation = getWeatherInterpretation(selectedRainfall);
 
   return (
     <div className="flex flex-col gap-6 md:gap-8 pb-10 md:pb-24">
@@ -45,12 +53,12 @@ export default function PanchayatDetail({
         <div className="flex items-start gap-3">
           <div className="bg-red-100 p-2 md:p-3 rounded-full mt-1 shrink-0"><MapPin size={24} className="text-red-600 w-5 h-5 md:w-6 md:h-6" /></div>
           <div>
-            <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">My Panchayat</div>
+            <div className="text-[10px] md:text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">{t('panchayat.myPanchayat')}</div>
             <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight leading-none mb-2">
               {panchayatDetails.GPNAME || "Unknown Panchayat"}
             </h2>
             <div className="text-xs md:text-sm text-gray-600 font-medium">
-              {panchayatDetails.blkname} Block • {panchayatDetails.dtname} Dist
+              {panchayatDetails.blkname} {t('panchayat.block')} • {panchayatDetails.dtname} {t('panchayat.district')}
             </div>
           </div>
         </div>
@@ -58,7 +66,7 @@ export default function PanchayatDetail({
 
       {/* 2. Crop Selector - Horizontal scroll on mobile */}
       <div>
-        <h3 className="text-xs md:text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">What are you growing?</h3>
+        <h3 className="text-xs md:text-sm font-bold text-gray-700 uppercase tracking-wider mb-3">{t('ag.growing')}</h3>
         <div className="flex overflow-x-auto gap-2 pb-2 hide-scrollbar snap-x">
           {CROPS.map(c => (
             <button 
@@ -66,37 +74,61 @@ export default function PanchayatDetail({
               onClick={() => setSelectedCrop(c)}
               className={`snap-start shrink-0 px-4 md:px-5 py-2 md:py-2.5 rounded-full text-[13px] md:text-sm font-bold transition-all border ${selectedCrop === c ? 'bg-emerald-600 text-white border-emerald-600 shadow-md' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-200'}`}
             >
-              {c}
+              {t(`ag.${c.toLowerCase()}`)}
             </button>
           ))}
         </div>
       </div>
 
-      {/* 3. Today's Weather */}
-      <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-5 md:p-6 text-white shadow-lg relative overflow-hidden">
+      {/* 3. Selected Day Weather */}
+      <div 
+        onClick={() => setWeatherCardExpanded(!weatherCardExpanded)}
+        className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl p-5 md:p-6 text-white shadow-lg relative overflow-hidden cursor-pointer transition-all hover:shadow-xl"
+      >
          <div className="absolute -top-4 -right-4 p-4 opacity-20"><CloudRain size={120} /></div>
-         <h3 className="text-xs md:text-sm font-bold uppercase tracking-widest mb-4 text-blue-100 relative z-10">Today's Weather</h3>
+         <div className="flex justify-between items-center relative z-10 mb-4">
+           <h3 className="text-xs md:text-sm font-bold uppercase tracking-widest text-blue-100">
+             {isToday ? t('weather.today') : new Date(selectedForecast?.date).toLocaleDateString(language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+           </h3>
+           <div className="text-blue-200">
+             {weatherCardExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+           </div>
+         </div>
          
-         {todayForecast ? (
+         {selectedForecast ? (
            <div className="relative z-10">
-             <div className="flex items-end gap-2 md:gap-3 mb-5 md:mb-6">
-                <span className="text-5xl md:text-6xl font-black leading-none tracking-tighter">{todayRainfall.toFixed(1)}</span>
+             <div className="flex items-end gap-2 md:gap-3 mb-2">
+                <span className="text-5xl md:text-6xl font-black leading-none tracking-tighter">{selectedRainfall.toFixed(1)}</span>
                 <span className="text-xl md:text-2xl font-bold text-blue-200 pb-1">mm</span>
              </div>
              
-             <div className="flex justify-between md:justify-start md:gap-8 border-t border-blue-400/50 pt-4">
-                <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-[13px] md:text-sm text-blue-50 font-medium">
-                  <span className="flex items-center gap-1 text-blue-200"><Thermometer size={14}/> Temp</span> 
-                  <span className="text-white text-lg md:text-sm font-bold md:font-medium">28°C</span>
-                </div>
-                <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-[13px] md:text-sm text-blue-50 font-medium">
-                  <span className="flex items-center gap-1 text-blue-200"><Droplet size={14}/> Hum</span> 
-                  <span className="text-white text-lg md:text-sm font-bold md:font-medium">76%</span>
-                </div>
-                <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-[13px] md:text-sm text-blue-50 font-medium md:hidden">
-                  <span className="flex items-center gap-1 text-blue-200"><Wind size={14}/> Wind</span> 
-                  <span className="text-white text-lg md:text-sm font-bold md:font-medium">11kph</span>
-                </div>
+             {/* Always visible quick summary */}
+             {!weatherCardExpanded && (
+               <div className="text-sm font-medium text-blue-50 mt-2">
+                 {getWeatherInterpretation(selectedRainfall).split('.')[0]}
+               </div>
+             )}
+
+             {/* Expanded Details */}
+             <div className={`transition-all duration-300 overflow-hidden ${weatherCardExpanded ? 'max-h-96 opacity-100 mt-6' : 'max-h-0 opacity-0 mt-0'}`}>
+               <div className="flex justify-between md:justify-start md:gap-8 border-t border-blue-400/50 pt-4">
+                  <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-[13px] md:text-sm text-blue-50 font-medium">
+                    <span className="flex items-center gap-1 text-blue-200"><Thermometer size={14}/> Temp</span> 
+                    <span className="text-white text-lg md:text-sm font-bold md:font-medium">28°C</span>
+                  </div>
+                  <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-[13px] md:text-sm text-blue-50 font-medium">
+                    <span className="flex items-center gap-1 text-blue-200"><Droplet size={14}/> Hum</span> 
+                    <span className="text-white text-lg md:text-sm font-bold md:font-medium">76%</span>
+                  </div>
+                  <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 text-[13px] md:text-sm text-blue-50 font-medium">
+                    <span className="flex items-center gap-1 text-blue-200"><Wind size={14}/> Wind</span> 
+                    <span className="text-white text-lg md:text-sm font-bold md:font-medium">11kph</span>
+                  </div>
+               </div>
+               <div className="mt-4 pt-3 border-t border-blue-400/50 flex flex-col gap-1 text-xs text-blue-100">
+                 <div><strong>Source:</strong> Operational ECMWF Forecast (Open-Meteo)</div>
+                 <div><strong>Model:</strong> XGBoost Downscaling</div>
+               </div>
              </div>
            </div>
          ) : (
@@ -105,11 +137,11 @@ export default function PanchayatDetail({
       </div>
 
       {/* 4. Weather Interpretation */}
-      {todayForecast && (
+      {selectedForecast && (
         <div className="bg-blue-50/50 border border-blue-100 p-4 md:p-5 rounded-xl">
           <div className="flex flex-wrap items-center justify-between mb-3 gap-2">
-             <h3 className="text-[11px] md:text-sm font-bold text-blue-900 uppercase tracking-widest flex items-center gap-1.5"><Info size={14} className="text-blue-500"/> What does this mean?</h3>
-             <span className="text-[9px] md:text-[10px] font-bold tracking-widest uppercase bg-blue-100 text-blue-700 px-2 py-0.5 rounded">Advisory Prototype</span>
+             <h3 className="text-[11px] md:text-sm font-bold text-blue-900 uppercase tracking-widest flex items-center gap-1.5"><Info size={14} className="text-blue-500"/> {t('explain.whatDoesThisMean')}</h3>
+             <span className="text-[9px] md:text-[10px] font-bold tracking-widest uppercase bg-blue-100 text-blue-700 px-2 py-0.5 rounded">{t('sys.prototype')}</span>
           </div>
           <p className="text-[13px] md:text-[15px] text-gray-800 font-medium leading-relaxed">{interpretation}</p>
           
@@ -119,16 +151,35 @@ export default function PanchayatDetail({
             className="text-[11px] md:text-xs text-blue-600 mt-4 font-bold flex items-center gap-1 hover:bg-blue-50 py-1.5 px-2 -ml-2 rounded transition-colors"
           >
             {showExplain ? <ChevronUp size={14}/> : <ChevronDown size={14}/>} 
-            Why is this different from the regional forecast?
+            {t('explain.whyDifferent')}
           </button>
           
           {showExplain && (
-            <div className="mt-3 pt-3 border-t border-blue-200/50 text-[12px] md:text-xs text-gray-600 space-y-2">
+            <div className="mt-3 pt-3 border-t border-blue-200/50 text-[12px] md:text-xs text-gray-600 space-y-4">
               <p>This estimate is hyper-localized for <strong>{panchayatDetails.GPNAME}</strong> using AI.</p>
-              <ul className="list-disc pl-4 marker:text-blue-400 space-y-1.5 mt-2">
-                <li>Your Panchayat's mean elevation is <strong>{Number(panchayatDetails.elevation_mean).toFixed(0)}m</strong>.</li>
-                <li>The XGBoost AI model adjusts the standard coarse (27km) ECMWF forecast by {todayForecast.model_residual_correction_mm > 0 ? "adding" : "subtracting"} {Math.abs(todayForecast.model_residual_correction_mm).toFixed(2)} mm based on your specific terrain.</li>
-              </ul>
+              
+              <div className="flex flex-col md:flex-row md:items-center gap-2 bg-white p-3 rounded-lg border border-blue-100 shadow-sm">
+                <div className="flex-1">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase">Step 1</div>
+                  <div className="font-bold text-gray-700">Coarse Forecast</div>
+                  <div className="text-blue-600">{Number(selectedForecast.era5_baseline_input_mm).toFixed(1)} mm</div>
+                </div>
+                <div className="text-blue-300 hidden md:block">→</div>
+                <div className="flex-1">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase">Step 2</div>
+                  <div className="font-bold text-gray-700">AI Correction</div>
+                  <div className={selectedForecast.model_residual_correction_mm > 0 ? "text-emerald-600" : "text-amber-600"}>
+                    {selectedForecast.model_residual_correction_mm > 0 ? "+" : ""}{Number(selectedForecast.model_residual_correction_mm).toFixed(2)} mm
+                  </div>
+                  <div className="text-[9px] text-gray-400 leading-tight mt-0.5">(Based on {Number(panchayatDetails.elevation_mean).toFixed(0)}m elevation)</div>
+                </div>
+                <div className="text-blue-300 hidden md:block">→</div>
+                <div className="flex-1 bg-blue-50 p-2 rounded">
+                  <div className="text-[10px] font-bold text-blue-400 uppercase">Final</div>
+                  <div className="font-bold text-blue-900">Panchayat Estimate</div>
+                  <div className="text-blue-700 font-black">{Number(selectedRainfall).toFixed(1)} mm</div>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -136,21 +187,25 @@ export default function PanchayatDetail({
 
       {/* 5. Advisory */}
       <div>
-        <h3 className="text-lg md:text-xl font-black text-gray-900 mb-3 md:mb-4 tracking-tight">Agricultural Advisory</h3>
-        <AgriculturalIntelligence selectedCrop={selectedCrop} todayRainfall={todayRainfall} />
+        <h3 className="text-lg md:text-xl font-black text-gray-900 mb-3 md:mb-4 tracking-tight">{t('ag.advisory')}</h3>
+        <AgriculturalIntelligence selectedCrop={selectedCrop} todayRainfall={selectedRainfall} />
       </div>
 
       {/* 6. 7-Day Timeline */}
       {operationalForecast?.forecast && (
         <div className="w-full overflow-hidden">
-          <h3 className="text-lg md:text-xl font-black text-gray-900 mb-3 md:mb-4 tracking-tight">7-Day Outlook</h3>
+          <h3 className="text-lg md:text-xl font-black text-gray-900 mb-3 md:mb-4 tracking-tight">{t('weather.outlook7Day')}</h3>
           <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar snap-x w-full">
             {operationalForecast.forecast.map((day: any, i: number) => {
               const date = new Date(day.date);
               const dayName = date.toLocaleDateString('en-US', { weekday: 'short' }).toUpperCase();
               const rf = day.final_downscaled_prediction_mm;
               return (
-                <div key={i} className="snap-start shrink-0 bg-white border border-gray-200 rounded-xl p-3 md:p-4 w-[85px] md:w-[100px] flex flex-col items-center shadow-sm">
+                <div 
+                  key={i} 
+                  onClick={() => setSelectedDayIndex(i)}
+                  className={`snap-start shrink-0 border rounded-xl p-3 md:p-4 w-[85px] md:w-[100px] flex flex-col items-center shadow-sm cursor-pointer transition-all ${selectedDayIndex === i ? 'bg-blue-50 border-blue-300 scale-105' : 'bg-white border-gray-200 hover:bg-gray-50'}`}
+                >
                   <div className={`text-[10px] md:text-xs font-bold mb-2 ${i === 0 ? 'text-blue-600' : 'text-gray-400'}`}>
                     {i === 0 ? 'TODAY' : dayName}
                   </div>
@@ -173,7 +228,7 @@ export default function PanchayatDetail({
         >
           <div className="flex items-center gap-2 md:gap-3">
             <Database size={18} className="text-gray-500"/>
-            <span className="text-[13px] md:text-sm font-bold text-gray-700 tracking-wide">Data & Model (Advanced)</span>
+            <span className="text-[13px] md:text-sm font-bold text-gray-700 tracking-wide">{t('nav.dataModel')}</span>
           </div>
           {showDataModel ? <ChevronUp size={20} className="text-gray-500"/> : <ChevronDown size={20} className="text-gray-500"/>}
         </button>

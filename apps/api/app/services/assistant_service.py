@@ -12,7 +12,7 @@ class AssistantService:
             self.llm = None
             print(f"LLM Provider initialization failed: {e}")
 
-    def chat(self, gpcode: str, crop: str, message: str, history: List[Dict[str, str]] = None) -> Dict[str, Any]:
+    def chat(self, gpcode: str, crop: str, message: str, history: List[Dict[str, str]] = None, language: str = "en") -> Dict[str, Any]:
         if not self.llm:
             return {
                 "answer": "The Panchayat AI is temporarily unavailable due to missing LLM configuration (e.g. GEMINI_API_KEY).",
@@ -34,8 +34,14 @@ class AssistantService:
             
         context_data["user_crop_context"] = crop if crop else "No specific crop selected."
 
+        lang_instruction = ""
+        if language == "hi":
+            lang_instruction = "13. YOU MUST REPLY IN HINDI (हिंदी). Your entire response must be in Hindi."
+        elif language == "mr":
+            lang_instruction = "13. YOU MUST REPLY IN MARATHI (मराठी). Your entire response must be in Marathi."
+
         # 2. Build System Prompt
-        system_prompt = """ROLE:
+        system_prompt = f"""ROLE:
 You are Panchayat Weather Copilot. You help users understand weather information and agricultural decision-support information for their selected Panchayat.
 
 RULES:
@@ -51,6 +57,7 @@ RULES:
 10. Do not claim the system replaces IMD or agricultural experts.
 11. If the user asks about the model performance, mention the 2023 spatial-block validation (RMSE reduction ~38.45%).
 12. If the user asks about their specific crop, tailor your advice based on the supplied context and weather. If no crop is selected, ask them what they are growing.
+{lang_instruction}
 """
         
         # 3. Generate Response

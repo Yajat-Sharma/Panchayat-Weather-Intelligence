@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, X, Send, Bot, User, MapPin, Sprout, Loader2 } from 'lucide-react';
+import { useLanguage } from '../i18n/LanguageContext';
 
 interface Props {
   selectedGpcode: string | null;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedCrop, isOpenMobile, setIsOpenMobile }: Props) {
+  const { t, language } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   
   // Sync with mobile state if provided
@@ -25,7 +27,7 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
   };
 
   const [messages, setMessages] = useState<{role: 'bot' | 'user', text: string}[]>([
-    { role: 'bot', text: 'Hello! I am your Panchayat Weather Copilot. How can I help you interpret the weather or agricultural data today?' }
+    { role: 'bot', text: t('ai.greeting') }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -39,15 +41,31 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
     scrollToBottom();
   }, [messages]);
 
-  const suggestedQuestions = [
-    "Will it rain tomorrow?",
-    "Should I irrigate my crop?",
-    "Is this week suitable for field activity?",
-    "Why is there a weather alert?",
-    "Explain today's weather.",
-    "Why is the downscaled rainfall different from ERA5?",
-    "How does the downscaling model work?"
-  ];
+  const suggestedQuestions = language === 'hi' 
+    ? [
+        "क्या कल बारिश होगी?",
+        "क्या मुझे अपनी फसल की सिंचाई करनी चाहिए?",
+        "क्या यह सप्ताह खेत के काम के लिए उपयुक्त है?",
+        "मौसम की चेतावनी क्यों है?",
+        "डाउनस्केलिंग मॉडल कैसे काम करता है?"
+      ]
+    : language === 'mr'
+    ? [
+        "उद्या पाऊस पडेल का?",
+        "मी माझ्या पिकाला पाणी द्यावे का?",
+        "हा आठवडा शेतीच्या कामासाठी योग्य आहे का?",
+        "हवामानाचा इशारा का आहे?",
+        "डाउनस्केलिंग मॉडेल कसे काम करते?"
+      ]
+    : [
+        "Will it rain tomorrow?",
+        "Should I irrigate my crop?",
+        "Is this week suitable for field activity?",
+        "Why is there a weather alert?",
+        "Explain today's weather.",
+        "Why is the downscaled rainfall different from ERA5?",
+        "How does the downscaling model work?"
+      ];
 
   const handleSend = async (text: string) => {
     if (!text.trim() || isLoading) return;
@@ -72,6 +90,7 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
         body: JSON.stringify({
           gpcode: selectedGpcode || "",
           crop: selectedCrop || "",
+          language: language,
           message: text,
           history: history
         })
@@ -105,7 +124,7 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
         >
           <MessageSquare size={24} />
           <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 ease-in-out font-medium group-hover:ml-3 group-hover:mr-1">
-            Ask Panchayat AI
+            {t('ai.askPanchayatAi')}
           </span>
         </button>
       )}
@@ -125,8 +144,8 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
         {/* Header */}
         <div className="bg-blue-600 p-4 md:p-5 text-white flex justify-between items-start shrink-0 pt-[calc(1rem+env(safe-area-inset-top))]">
           <div>
-            <h2 className="font-bold text-base md:text-lg flex items-center gap-2"><Bot size={20}/> Panchayat Copilot</h2>
-            <p className="text-blue-100 text-xs md:text-sm mt-1">Ask about weather and agriculture.</p>
+            <h2 className="font-bold text-base md:text-lg flex items-center gap-2"><Bot size={20}/> {t('nav.aiCopilot')}</h2>
+            <p className="text-blue-100 text-xs md:text-sm mt-1">{t('ai.subtitle')}</p>
           </div>
           <button onClick={handleClose} className="text-blue-100 hover:text-white bg-blue-700/50 p-1 rounded-md">
             <X size={20} />
@@ -141,7 +160,7 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
           </div>
           <div className="flex items-center gap-1.5 text-emerald-800 bg-emerald-100/50 px-2 py-1 rounded">
              <Sprout size={12}/> 
-             <span className="font-semibold">{selectedCrop || "Select a crop"}</span>
+             <span className="font-semibold">{selectedCrop ? t(`ag.${selectedCrop.toLowerCase()}`) : "Select a crop"}</span>
           </div>
         </div>
 
@@ -176,7 +195,7 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
 
         {/* Suggested Questions */}
         <div className="p-3 bg-white border-t border-gray-100 shrink-0">
-          <div className="text-[10px] md:text-xs font-semibold text-gray-400 mb-2 uppercase tracking-widest">Suggested</div>
+          <div className="text-[10px] md:text-xs font-semibold text-gray-400 mb-2 uppercase tracking-widest">{t('ai.suggested')}</div>
           <div className="flex overflow-x-auto gap-2 pb-1 hide-scrollbar snap-x">
             {suggestedQuestions.map((q, i) => (
               <button 
@@ -198,7 +217,7 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
-            placeholder="Ask a question..."
+            placeholder={t('ai.placeholder')}
             className="flex-1 border border-gray-300 rounded-full px-4 py-2 text-[13px] md:text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-gray-50"
           />
           <button 
