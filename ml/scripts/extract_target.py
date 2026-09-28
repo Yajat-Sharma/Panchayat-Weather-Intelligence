@@ -1,4 +1,5 @@
 import os
+import sys
 import yaml
 import logging
 from pathlib import Path
@@ -11,17 +12,14 @@ warnings.filterwarnings("ignore")
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-def get_base_dir():
-    return Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+from ml.downscaling.config import BOUNDARIES, CHIRPS_NC, RAIN_TARGET  # noqa: E402
 
 def extract_chirps_to_panchayats():
-    base_dir = get_base_dir()
-    
-    geojson_path = base_dir / "data" / "interim" / "boundaries" / "pune_panchayats_valid.geojson"
-    target_nc_path = base_dir / "data" / "raw" / "target" / "chirps_p05_2023.nc"
-    output_dir = base_dir / "data" / "processed" / "targets"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    output_path = output_dir / "panchayat_rainfall_target.parquet"
+    geojson_path = BOUNDARIES
+    target_nc_path = CHIRPS_NC
+    output_path = RAIN_TARGET
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     
     logger.info("Loading Panchayats...")
     gdf = gpd.read_file(geojson_path)
