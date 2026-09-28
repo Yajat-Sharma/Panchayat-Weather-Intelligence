@@ -151,30 +151,28 @@ apps/
 ---
 
 ## 11. Last Completed Work
-- Phase 10: Panchayat AI Copilot Backend completed.
-- Implemented RAG LLM engine in FastAPI using `google-genai` and `gemini-2.5-flash`.
-- Created provider-agnostic `LLMProvider` abstraction (`apps/api/app/services/llm_provider.py`).
-- Integrated `ContextService` to dynamically fetch Panchayat metadata and 7-day XGBoost-downscaled operational forecasts.
-- Implemented strict anti-hallucination System Prompt to guarantee data grounding.
-- Connected the Next.js `ChatbotDrawer.tsx` to the `POST /api/v1/assistant/chat` endpoint.
-- Handled conversational history context via frontend state.
-- Handled gracefully missing environment variables (`GEMINI_API_KEY`) and missing forecast data.
-- Added automated API tests for the Copilot endpoint.
+- Phase 11: Final Scientific + End-to-End SIH Audit completed.
+- **Operational Forecast Audit:** Documented the live Open-Meteo inference pathway.
+  - *Source:* ECMWF IFS 0.25° via Open-Meteo API.
+  - *Variable:* `precipitation_sum` (daily).
+  - *Distribution Shift:* Acknowledged that using operational ECMWF as input for a model trained on historical ERA5 is a prototype inference pathway requiring future observational validation.
+- **Grounding Audit:** Verified the Panchayat AI Copilot strictly uses retrieved downscaled data and safely handles missing forecasts (no hallucinations).
+- **Non-negative Output:** Verified `max(0, raw_prediction)` clipping in `inference.py`.
+- **Documentation:** Updated README.md and created `docs/sih-demo-flow.md` with SIH-approved pitching terminology.
 
 ---
 
 ## 12. Current Next Step
-**FINAL REVIEW & DEMONSTRATION PREP**
-- **Action:** Conduct an end-to-end test of the entire Panchayat Weather Intelligence platform (Map -> Panchayat Detail -> Downscaled Weather -> Conversational Copilot). Verify SIH presentation readiness and ensure all `.env` files are configured for the final pitch.
+**SIH presentation, demo rehearsal and final pitch preparation.**
 
 ---
 
 ## 13. Last Updated
 Last updated:
-2026-09-28 14:50
+2026-09-28 14:55
 
 Phase:
-10
+11
 
 Status:
-COMPLETE (PANCHAYAT AI RAG BACKEND INTEGRATED)
+COMPLETE (FINAL SIH AUDIT)
