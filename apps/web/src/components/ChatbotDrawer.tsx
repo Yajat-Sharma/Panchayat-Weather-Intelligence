@@ -27,6 +27,7 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
   const [messages, setMessages] = useState<{role: 'bot' | 'user', text: string}[]>([
     { role: 'bot', text: 'Hello! I am your Panchayat Weather Copilot. How can I help you interpret the weather or agricultural data today?' }
   ]);
+  const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
