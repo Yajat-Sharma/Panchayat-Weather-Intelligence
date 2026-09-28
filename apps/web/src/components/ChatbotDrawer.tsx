@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { MessageSquare, X, Send, Bot, User, AlertTriangle, MapPin, Sprout } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { MessageSquare, X, Send, Bot, User, MapPin, Sprout, Loader2 } from 'lucide-react';
 
 interface Props {
   selectedGpcode: string | null;
@@ -27,7 +27,16 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
   const [messages, setMessages] = useState<{role: 'bot' | 'user', text: string}[]>([
     { role: 'bot', text: 'Hello! I am your Panchayat Weather Copilot. How can I help you interpret the weather or agricultural data today?' }
   ]);
-  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   const suggestedQuestions = [
     "Will it rain tomorrow?",
@@ -35,21 +44,53 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
     "Is this week suitable for field activity?",
     "Why is there a weather alert?",
     "Explain today's weather.",
-    "Why is the downscaled rainfall different from ERA5?"
+    "Why is the downscaled rainfall different from ERA5?",
+    "How does the downscaling model work?"
   ];
 
-  const handleSend = (text: string) => {
-    if (!text.trim()) return;
-    setMessages(prev => [...prev, { role: 'user', text }]);
-    setInput('');
+  const handleSend = async (text: string) => {
+    if (!text.trim() || isLoading) return;
     
-    // Mock response
-    setTimeout(() => {
+    const newMessages = [...messages, { role: 'user' as const, text }];
+    setMessages(newMessages);
+    setInput('');
+    setIsLoading(true);
+    
+    try {
+      // Build history for API (excluding the very first generic greeting)
+      const history = newMessages.slice(1, -1).map(m => ({
+        role: m.role,
+        content: m.text
+      }));
+
+      const response = await fetch('http://localhost:8000/api/v1/assistant/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          gpcode: selectedGpcode || "",
+          crop: selectedCrop || "",
+          message: text,
+          history: history
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API Error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setMessages(prev => [...prev, { role: 'bot', text: data.answer }]);
+    } catch (error) {
+      console.error("Chatbot error:", error);
       setMessages(prev => [...prev, { 
         role: 'bot', 
-        text: 'This is a prototype UI. The live LLM integration (Panchayat Weather Copilot) is planned for the next phase. I cannot answer real questions yet.' 
+        text: 'Sorry, I am having trouble connecting to the Panchayat AI service right now. Please try again later.' 
       }]);
-    }, 600);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -103,13 +144,7 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
           </div>
         </div>
 
-        {/* Prototype Warning */}
-        <div className="bg-amber-50 border-b border-amber-200 p-2 md:p-3 flex items-start gap-2 md:gap-3 shrink-0">
-          <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={14} />
-          <div className="text-[10px] md:text-xs text-amber-800 leading-tight">
-            <strong>Prototype Interface:</strong> Conversational AI backend planned for the next development phase.
-          </div>
-        </div>
+        {/* Removed Prototype Warning */}
 
         {/* Chat History */}
         <div className="flex-1 overflow-y-auto p-4 md:p-5 flex flex-col gap-4 bg-gray-50 pb-4">
@@ -118,11 +153,24 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
               <div className={`shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center ${msg.role === 'user' ? 'bg-indigo-100 text-indigo-700' : 'bg-blue-100 text-blue-700'}`}>
                 {msg.role === 'user' ? <User size={14}/> : <Bot size={14}/>}
               </div>
-              <div className={`p-3 rounded-2xl text-[13px] md:text-sm shadow-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm'}`}>
+              <div className={`p-3 rounded-2xl text-[13px] md:text-sm shadow-sm whitespace-pre-wrap ${msg.role === 'user' ? 'bg-indigo-600 text-white rounded-tr-sm' : 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm'}`}>
                 {msg.text}
               </div>
             </div>
           ))}
+          {isLoading && (
+            <div className="flex gap-2 md:gap-3 max-w-[90%] md:max-w-[85%] self-start">
+              <div className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center bg-blue-100 text-blue-700">
+                <Loader2 size={14} className="animate-spin"/>
+              </div>
+              <div className="p-3 rounded-2xl text-[13px] md:text-sm shadow-sm bg-white border border-gray-200 text-gray-500 rounded-tl-sm flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce"></span>
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></span>
+                <span className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></span>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Suggested Questions */}
@@ -154,7 +202,7 @@ export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedC
           />
           <button 
             onClick={() => handleSend(input)}
-            disabled={!input.trim()}
+            disabled={!input.trim() || isLoading}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white p-2 md:p-2.5 rounded-full transition-colors flex items-center justify-center shrink-0"
           >
             <Send size={16} className="ml-0.5" />

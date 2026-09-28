@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import geopandas as gpd
 import pandas as pd
 from .inference import WeatherDownscaler
+from .services.assistant_service import AssistantService
 
 app = FastAPI(
     title="SIH Weather Downscaling API",
@@ -258,5 +259,35 @@ def get_operational_forecast(gpcode: str):
         "status": "AVAILABLE",
         "forecast": results
     }
+
+class MessageHistory(BaseModel):
+    role: str
+    content: str
+
+class CopilotRequest(BaseModel):
+    gpcode: str
+    crop: str = None
+    message: str
+    history: List[MessageHistory] = []
+
+@app.post("/api/v1/assistant/chat")
+def post_assistant_chat(request: CopilotRequest):
+    """
+    Panchayat AI Copilot Endpoint.
+    Context-aware RAG backend for the ChatbotDrawer.
+    """
+    assistant = AssistantService(db)
+    
+    # Convert Pydantic history objects to dicts
+    history_dicts = [{"role": msg.role, "content": msg.content} for msg in request.history]
+    
+    response = assistant.chat(
+        gpcode=request.gpcode,
+        crop=request.crop,
+        message=request.message,
+        history=history_dicts
+    )
+    
+    return response
 
 
