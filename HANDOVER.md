@@ -179,3 +179,12 @@ Phase:
 
 Status:
 COMPLETE (INTERACTIVE PRODUCT UX)
+
+
+## Update (2026-09-28): gap-closing plan implemented
+
+- **ML:** `ml/downscaling/` + `ml/scripts/run_all.py` provide a multi-variable (rain, Tmax, Tmin, RH, wind) pipeline with IST days, a lapse-rate baseline, v2 terrain/land-cover features (kept only if CV improves ≥ 1%), quantile models with coverage, a rain-probability classifier and a block-input variant. Verified end to end on synthetic NetCDFs; **not yet run on real ERA5/ERA5-Land (needs `~/.cdsapirc`)**. Only rainfall v1 is deployed.
+- **API:** shared cached `ForecastService` (one Open-Meteo request, `elevation=nan`); `ModelRegistry`; new `/metrics`, `/map/forecast`, `/blocks*`, `/panchayats/{gp}/advisory`; copilot context includes the advisory and metrics.
+- **Web:** multi-variable hero and list with p10–p90 band and rain chance, coarse/downscaled map layer, block view with custom block forecast, backend advisory in EN/HI/MR, metrics read from the API.
+- **Tests:** `cd apps/api && PYTHONPATH=../.. uv run pytest` (48), and `PYTHONPATH=. uv run --project ml pytest ml/tests` (32 + 5 skipped until data exists).
+- See `docs/methodology/multi-variable-downscaling.md` for method and caveats.
