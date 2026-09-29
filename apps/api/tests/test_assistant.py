@@ -7,6 +7,7 @@ client = TestClient(app)
 # Mock the database features for testing
 @pytest.fixture(autouse=True)
 def setup_db():
+    saved = db["features_dict"]
     db["features_dict"] = {
         "123": {
             "GPNAME": "Test Panchayat",
@@ -20,7 +21,7 @@ def setup_db():
     
     # We won't mock downscaler here to test the fallback when it's unavailable or open-meteo fails
     yield
-    db["features_dict"] = {}
+    db["features_dict"] = saved
 
 def test_missing_gpcode():
     response = client.post("/api/v1/assistant/chat", json={

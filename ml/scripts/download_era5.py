@@ -1,72 +1,61 @@
-import cdsapi
-import os
-import calendar
-import tempfile
-import xarray as xr
+"""
+Download ERA5 (0.25°) hourly single-level data for the Pune bounding box.
 
-import yaml
+    python ml/scripts/download_era5.py                 # precipitation + surface variables + geopotential
+    python ml/scripts/download_era5.py --only precip   # just total precipitation (the v1 input)
 
-def download_era5_precipitation(year="2023", output_path=None):
-    """
-    Download total precipitation for Pune using the CDS API.
-    Note: Requires ~/.cdsapirc to be configured.
-    """
-    config_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "configs", "study_area.yaml"))
-    with open(config_path, 'r') as f:
-        config = yaml.safe_load(f)
-    bbox = config['study_area']['weather_bbox']
-    area = [bbox['north'], bbox['west'], bbox['south'], bbox['east']]
+Requires ~/.cdsapirc.
+"""
+import argparse
+import sys
+from pathlib import Path
 
-    if output_path is None:
-        output_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "data", "raw", "weather", f"era5_pune_{year}.nc"))
-        
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    
-    print(f"Requesting ERA5 Total Precipitation for {year} with BBox {area}...")
-    c = cdsapi.Client()
-    
-    temp_dir = tempfile.mkdtemp()
-    monthly_files = []
-    
-    for month in range(1, 13):
-        # Determine valid days for this month and year
-        _, num_days = calendar.monthrange(int(year), month)
-        days = [f"{day:02d}" for day in range(1, num_days + 1)]
-        month_str = f"{month:02d}"
-        
-        print(f"Downloading data for {year}-{month_str}...")
-        temp_file = os.path.join(temp_dir, f"era5_pune_{year}_{month_str}.nc")
-        
-        c.retrieve(
-            'reanalysis-era5-single-levels',
-            {
-                'product_type': 'reanalysis',
-                'format': 'netcdf',
-                'variable': 'total_precipitation',
-                'year': year,
-                'month': month_str,
-                'day': days,
-                'time': [
-                    f"{hour:02d}:00" for hour in range(24)
-                ],
-                # Bounding box for Pune (N, W, S, E)
-                'area': area,
-            },
-            temp_file)
-            
-        monthly_files.append(temp_file)
-        
-    print("Merging monthly datasets into final NetCDF...")
-    ds = xr.open_mfdataset(monthly_files, combine='by_coords')
-    ds.to_netcdf(output_path)
-    ds.close()
-    
-    # Cleanup
-    for f in monthly_files:
-        os.remove(f)
-    os.rmdir(temp_dir)
-        
-    print(f"Downloaded ERA5 NetCDF to {output_path}")
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+
+from ml.downscaling.cds import retrieve_invariant, retrieve_year  # noqa: E402
+from ml.downscaling.config import ERA5_GEOPOTENTIAL_NC, ERA5_RAIN_NC, ERA5_SURFACE_NC, YEAR  # noqa: E402
+
+DATASET = "reanalysis-era5-single-levels"
+SURFACE_VARIABLES = [
+    "2m_temperature",
+    "2m_dewpoint_temperature",
+    "10m_u_component_of_wind",
+    "10m_v_component_of_wind",
+]
+
+
+def download_era5_precipitation(year=YEAR, output_path=ERA5_RAIN_NC):
+    return retrieve_year(DATASET, ["total_precipitation"], year, output_path)
+
+
+def download_era5_surface(year=YEAR, output_path=ERA5_SURFACE_NC, variables=SURFACE_VARIABLES):
+    return retrieve_year(DATASET, list(variables), year, output_path)
+
+
+def download_era5_geopotential(output_path=ERA5_GEOPOTENTIAL_NC):
+    """Surface geopotential / g = the elevation ERA5 assumes for each 0.25° cell."""
+    return retrieve_invariant(DATASET, "geopotential", output_path)
+
+
+def main(argv=None):
+    p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--year", default=YEAR)
+    p.add_argument("--only", choices=["precip", "surface", "geopotential"])
+    p.add_argument("--force", action="store_true", help="re-download even if the file exists")
+    a = p.parse_args(argv)
+    jobs = {
+        "precip": (ERA5_RAIN_NC, lambda: download_era5_precipitation(a.year)),
+        "surface": (ERA5_SURFACE_NC, lambda: download_era5_surface(a.year)),
+        "geopotential": (ERA5_GEOPOTENTIAL_NC, download_era5_geopotential),
+    }
+    for name, (path, fn) in jobs.items():
+        if a.only and name != a.only:
+            continue
+        if Path(path).exists() and not a.force:
+            print(f"skip {name}: {path} exists")
+            continue
+        fn()
+
 
 if __name__ == "__main__":
-    download_era5_precipitation()
+    main()

@@ -1,9 +1,15 @@
 import pandas as pd
 import pytest
 
+from ml.downscaling.config import PREDICTIONS_DIR
+
+OOF = PREDICTIONS_DIR / "spatial_block_oof_predictions.parquet"
+
+
 def test_spatial_validation_integrity():
-    # Load dataset
-    oof_df = pd.read_parquet('../data/processed/predictions/spatial_block_oof_predictions.parquet')
+    if not OOF.exists():
+        pytest.skip("No out-of-fold predictions yet; run ml/scripts/run_all.py.")
+    oof_df = pd.read_parquet(OOF)
     
     # 1. No duplicate GPCODE-date pairs in OOF predictions
     duplicates = oof_df.duplicated(subset=['GPCODE', 'date']).sum()

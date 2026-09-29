@@ -1,0 +1,35 @@
+{
+    "source": "recorded_v1",
+    "note": "Rainfall v1 numbers recorded in docs/experiments/spatial-block-validation-results.md. Regenerated for every variable by `uv run python ml/scripts/run_all.py`.",
+    "validation": "spatial_block_kmeans_k5",
+    "period": "2023-01-01 to 2023-12-31",
+    "variables": {
+        "rainfall": {
+            "unit": "mm",
+            "reference": "CHIRPS v2.0 (0.05°)",
+            "coarse_input": "ERA5 (0.25°)",
+            "feature_set": "v1",
+            "model_version": "xgboost_downscaler_v1",
+            "panchayats": 1351,
+            "point": {
+                "baseline_rmse": 10.0,
+                "model_rmse": 6.16,
+                "baseline_mae": 3.49,
+                "model_mae": 2.01,
+                "rmse_reduction_percent": 38.45,
+                "mae_reduction_percent": 42.53
+            },
+            "random_holdout": {
+                "rmse_reduction_percent": 54.34
+            },
+            "heavy_rainfall": {
+                "sample_count": 5686,
+                "baseline_rmse": 54.93,
+                "model_rmse": 39.59
+            },
+            "interval": null,
+            "rain_probability": null,
+            "block_input": null
+        }
+    }
+}

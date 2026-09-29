@@ -1,0 +1,10 @@
+# Netlify builds the Next.js app in apps/web; its route handlers (src/app/api) serve the
+# whole API as Netlify Functions, so no separate backend is needed.
+# Set GROQ_API_KEY (and optionally NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) in the site's environment variables.
+[build]
+  base = "apps/web"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"
