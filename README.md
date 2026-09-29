@@ -1,4 +1,4 @@
-# Panchayat-level Weather Forecast Downscaling for Agro-Meteorological Advisory Services
+# Mausam IQ — Panchayat-level Weather Forecast Downscaling for Agro-Meteorological Advisory Services
 
 ## 1. Project Overview
 This project aims to downscale coarse block-level or district-level weather forecasts (such as those from IMD or global models) to a high-resolution Panchayat-level spatial scale. The resulting high-resolution estimates, combined with uncertainty metrics, form the basis for localized agro-meteorological advisories.
@@ -68,27 +68,40 @@ Hourly data are aggregated to **IST calendar days** so they match the operationa
 ## 10. Local Development Setup
 **Prerequisites:** Python 3.10+, Node.js (for Next.js frontend). No PostgreSQL/PostGIS is required for the local Phase 5.5 demo.
 
-### Running the Backend (FastAPI)
-Open a terminal in the repository root (e.g., PowerShell):
-```powershell
-cd apps/api
-# Install dependencies
-uv sync
-# Run the backend
-uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-```
-The API will be available at `http://localhost:8000`.
-
-### Running the Frontend (Next.js)
-Open a new terminal in the repository root:
+### Running the app (Next.js, API included)
+The Next.js app in `apps/web` serves both the dashboard and the whole `/api/v1` API (route handlers in
+`apps/web/src/app/api`, a TypeScript port of the FastAPI service that runs the same XGBoost models), so one
+process is enough:
 ```powershell
 cd apps/web
-# Install dependencies
 npm install
-# Run the frontend
 npm run dev
 ```
-The dashboard will be available at `http://localhost:3000`.
+The dashboard and API are available at `http://localhost:3000` and `http://localhost:3000/api/v1`.
+For the AI copilot, put `GROQ_API_KEY=...` in `apps/web/.env.local`.
+
+The web app reads data exported from `data/` into `apps/web/data/` and `apps/web/public/data/`. Re-export
+after retraining models or changing the boundary / feature files:
+```powershell
+cd apps/api
+uv run python ../../scripts/export_web_data.py
+```
+
+### Deploying to Netlify
+`netlify.toml` builds `apps/web` as a Next.js site; the API runs as Netlify Functions, so nothing else needs to
+be hosted. Connect the repository in Netlify and set these environment variables on the site:
+`GROQ_API_KEY` (copilot; or `LLM_PROVIDER=gemini` with `LLM_API_KEY`), optionally `MODEL_NAME` and
+`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`. Leave `NEXT_PUBLIC_API_URL` unset so the UI calls its own API.
+
+### Running the Python API (optional, for ML work and tests)
+The FastAPI service in `apps/api` is the reference implementation and is still used by the Python tests:
+```powershell
+cd apps/api
+uv sync
+uv run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+To point the UI at it instead of the built-in API, set `NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1`
+in `apps/web/.env.local`.
 
 ## 11. Environment Variables
 Copy `.env.example` to `.env` and fill in the required variables (DB connection, API keys if applicable).

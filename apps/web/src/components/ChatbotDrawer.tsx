@@ -1,235 +1,256 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, X, Send, Bot, User, MapPin, Sprout, Loader2 } from 'lucide-react';
+"use client";
+
+import React, { useEffect, useRef, useState } from 'react';
+import { ArrowUp, MapPin, MessagesSquare, RotateCw, Sprout, X } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
+import { api } from '../lib/api';
+import { IconButton, cx } from './ui';
 
 interface Props {
+  open: boolean;
+  onClose: () => void;
   selectedGpcode: string | null;
   panchayatName: string | null;
   selectedCrop: string | null;
-  isOpenMobile?: boolean;
-  setIsOpenMobile?: (open: boolean) => void;
+  isDesktop: boolean;
 }
 
-export default function ChatbotDrawer({ selectedGpcode, panchayatName, selectedCrop, isOpenMobile, setIsOpenMobile }: Props) {
+type Message = { id: number; role: 'bot' | 'user'; text: string; failed?: boolean };
+
+let nextId = 1;
+
+export default function ChatbotDrawer({ open, onClose, selectedGpcode, panchayatName, selectedCrop, isDesktop }: Props) {
   const { t, language } = useLanguage();
-  const [isOpen, setIsOpen] = useState(false);
-  
-  // Sync with mobile state if provided
-  useEffect(() => {
-    if (isOpenMobile !== undefined) {
-      setIsOpen(isOpenMobile);
-    }
-  }, [isOpenMobile]);
-
-  const handleClose = () => {
-    setIsOpen(false);
-    if (setIsOpenMobile) setIsOpenMobile(false);
-  };
-
-  const [messages, setMessages] = useState<{role: 'bot' | 'user', text: string}[]>([
-    { role: 'bot', text: t('ai.greeting') }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    const el = scrollRef.current;
+    if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+  }, [messages, isLoading]);
 
-  const suggestedQuestions = language === 'hi' 
-    ? [
-        "क्या कल बारिश होगी?",
-        "क्या मुझे अपनी फसल की सिंचाई करनी चाहिए?",
-        "क्या यह सप्ताह खेत के काम के लिए उपयुक्त है?",
-        "मौसम की चेतावनी क्यों है?",
-        "डाउनस्केलिंग मॉडल कैसे काम करता है?"
-      ]
-    : language === 'mr'
-    ? [
-        "उद्या पाऊस पडेल का?",
-        "मी माझ्या पिकाला पाणी द्यावे का?",
-        "हा आठवडा शेतीच्या कामासाठी योग्य आहे का?",
-        "हवामानाचा इशारा का आहे?",
-        "डाउनस्केलिंग मॉडेल कसे काम करते?"
-      ]
-    : [
-        "Will it rain tomorrow?",
-        "Should I irrigate my crop?",
-        "Is this week suitable for field activity?",
-        "Why is there a weather alert?",
-        "Explain today's weather.",
-        "Why is the downscaled rainfall different from ERA5?",
-        "How does the downscaling model work?"
-      ];
+  useEffect(() => {
+    if (!open) return;
+    if (isDesktop) {
+      const id = setTimeout(() => inputRef.current?.focus({ preventScroll: true }), 250);
+      return () => clearTimeout(id);
+    }
+  }, [open, isDesktop]);
 
-  const handleSend = async (text: string) => {
-    if (!text.trim() || isLoading) return;
-    
-    const newMessages = [...messages, { role: 'user' as const, text }];
-    setMessages(newMessages);
-    setInput('');
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
+  const suggestions = ['ai.q1', 'ai.q2', 'ai.q3', 'ai.q4', 'ai.q5'].map(k => t(k));
+
+  const ask = async (msgId: number, text: string, prior: Message[]) => {
     setIsLoading(true);
-    
     try {
-      // Build history for API (excluding the very first generic greeting)
-      const history = newMessages.slice(1, -1).map(m => ({
-        role: m.role,
-        content: m.text
-      }));
-
-      const response = await fetch('http://localhost:8000/api/v1/assistant/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          gpcode: selectedGpcode || "",
-          crop: selectedCrop || "",
-          language: language,
-          message: text,
-          history: history
-        })
+      const history = prior
+        .filter(m => !m.failed)
+        .map(m => ({ role: m.role, content: m.text }));
+      const data = await api.chat({
+        gpcode: selectedGpcode || '',
+        crop: selectedCrop || '',
+        language,
+        message: text,
+        history,
       });
-
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setMessages(prev => [...prev, { role: 'bot', text: data.answer }]);
+      setMessages(prev => [...prev, { id: nextId++, role: 'bot', text: data.answer }]);
     } catch (error) {
-      console.error("Chatbot error:", error);
-      setMessages(prev => [...prev, { 
-        role: 'bot', 
-        text: 'Sorry, I am having trouble connecting to the Panchayat AI service right now. Please try again later.' 
-      }]);
+      console.error('Chatbot error:', error);
+      setMessages(prev => prev.map(m => (m.id === msgId ? { ...m, failed: true } : m)));
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleSend = (raw: string) => {
+    const text = raw.trim();
+    if (!text || isLoading) return;
+    const prior = messages;
+    const id = nextId++;
+    setMessages([...prior, { id, role: 'user', text }]);
+    setInput('');
+    ask(id, text, prior);
+  };
+
+  const retry = (msg: Message) => {
+    if (isLoading) return;
+    const idx = messages.findIndex(m => m.id === msg.id);
+    const prior = messages.slice(0, idx);
+    setMessages([...prior, { ...msg, failed: false }]);
+    ask(msg.id, msg.text, prior);
+  };
+
+  const hasConversation = messages.length > 0;
+
   return (
     <>
-      {/* Floating Action Button (Desktop Only) */}
-      {selectedGpcode && (
-        <button 
-          onClick={() => setIsOpen(true)}
-          className="hidden md:flex fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-xl shadow-blue-900/20 items-center justify-center transition-transform hover:scale-105 z-40 group"
-          aria-label="Ask Panchayat AI"
-        >
-          <MessageSquare size={24} />
-          <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-300 ease-in-out font-medium group-hover:ml-3 group-hover:mr-1">
-            {t('ai.askPanchayatAi')}
-          </span>
-        </button>
-      )}
-
-      {/* Drawer Overlay */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/40 md:bg-black/20 z-50 md:z-40 backdrop-blur-sm transition-opacity" 
-          onClick={handleClose}
+      {/* Scrim (mobile sheet only) */}
+      {!isDesktop && (
+        <div
+          aria-hidden
+          onClick={onClose}
+          className={cx(
+            'fixed inset-0 z-[900] bg-black/35 transition-opacity duration-500',
+            open ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          )}
         />
       )}
 
-      {/* Drawer Panel */}
-      {/* Mobile: 100% width, Desktop: 400px. Respects safe-area on mobile. */}
-      <div className={`fixed top-0 right-0 h-full w-full md:w-[400px] bg-white dark:bg-gray-950 shadow-2xl z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        
+      <div
+        role="dialog"
+        aria-modal={!isDesktop}
+        aria-label={t('nav.aiCopilot')}
+        inert={!open}
+        className={cx(
+          'fixed z-[1000] flex flex-col overflow-hidden glass-strong shadow-pop',
+          isDesktop
+            ? 'right-5 bottom-5 w-[400px] h-[min(680px,calc(100dvh-40px))] rounded-[26px] origin-bottom-right transition-[opacity,transform] duration-500 ease-[var(--ease-spring)]'
+            : 'inset-x-0 bottom-0 top-[calc(env(safe-area-inset-top)+10px)] rounded-t-[28px] transition-transform duration-500 ease-[var(--ease-sheet)]',
+          isDesktop
+            ? open ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-[0.9] translate-y-3 pointer-events-none'
+            : open ? 'translate-y-0' : 'translate-y-full'
+        )}
+      >
         {/* Header */}
-        <div className="bg-blue-600 dark:bg-blue-700 p-4 md:p-5 text-white flex justify-between items-start shrink-0 pt-[calc(1rem+env(safe-area-inset-top))]">
-          <div>
-            <h2 className="font-bold text-base md:text-lg flex items-center gap-2"><Bot size={20}/> {t('nav.aiCopilot')}</h2>
-            <p className="text-blue-100 text-xs md:text-sm mt-1">{t('ai.subtitle')}</p>
-          </div>
-          <button onClick={handleClose} className="text-blue-100 hover:text-white bg-blue-700/50 dark:bg-blue-800/50 p-1 rounded-md transition-colors">
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Context Bar */}
-        <div className="bg-blue-50 dark:bg-blue-900/20 px-4 py-2 border-b border-blue-100 dark:border-blue-900/50 flex items-center gap-3 shrink-0 text-[10px] md:text-xs overflow-x-auto whitespace-nowrap hide-scrollbar transition-colors">
-          <div className="flex items-center gap-1.5 text-blue-800 dark:text-blue-300 bg-blue-100/50 dark:bg-blue-900/40 px-2 py-1 rounded">
-             <MapPin size={12}/> 
-             <span className="font-semibold truncate max-w-[150px]">{panchayatName || "No Panchayat"}</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-emerald-800 dark:text-emerald-300 bg-emerald-100/50 dark:bg-emerald-900/40 px-2 py-1 rounded">
-             <Sprout size={12}/> 
-             <span className="font-semibold">{selectedCrop ? t(`ag.${selectedCrop.toLowerCase()}`) : "Select a crop"}</span>
-          </div>
-        </div>
-
-        {/* Removed Prototype Warning */}
-
-        {/* Chat History */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-5 flex flex-col gap-4 bg-gray-50 dark:bg-gray-900 pb-4 transition-colors">
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex gap-2 md:gap-3 max-w-[90%] md:max-w-[85%] ${msg.role === 'user' ? 'self-end flex-row-reverse' : 'self-start'}`}>
-              <div className={`shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center ${msg.role === 'user' ? 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400' : 'bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400'}`}>
-                {msg.role === 'user' ? <User size={14}/> : <Bot size={14}/>}
-              </div>
-              <div className={`p-3 rounded-2xl text-[13px] md:text-sm shadow-sm whitespace-pre-wrap ${msg.role === 'user' ? 'bg-indigo-600 dark:bg-indigo-700 text-white rounded-tr-sm' : 'bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-sm'}`}>
-                {msg.text}
-              </div>
+        <div className="shrink-0 px-4 pt-3 pb-3 border-b border-separator">
+          {!isDesktop && <div className="mx-auto mb-2 w-9 h-[5px] rounded-full bg-label-3/60" />}
+          <div className="flex items-center gap-3">
+            <span className="grid place-items-center w-9 h-9 rounded-full text-white bg-accent shrink-0">
+              <MessagesSquare size={17} />
+            </span>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-[16px] font-semibold tracking-[-0.01em] text-label">{t('nav.aiCopilot')}</h2>
+              <p className="text-[12.5px] text-label-2 truncate">{t('ai.subtitle')}</p>
             </div>
-          ))}
-          {isLoading && (
-            <div className="flex gap-2 md:gap-3 max-w-[90%] md:max-w-[85%] self-start">
-              <div className="shrink-0 w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-400">
-                <Loader2 size={14} className="animate-spin"/>
-              </div>
-              <div className="p-3 rounded-2xl text-[13px] md:text-sm shadow-sm bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 text-gray-500 dark:text-gray-400 rounded-tl-sm flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-600 rounded-full animate-bounce"></span>
-                <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-600 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></span>
-                <span className="w-1.5 h-1.5 bg-gray-400 dark:bg-gray-600 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></span>
-              </div>
+            <IconButton label={t('ai.close')} onClick={onClose} variant="fill" className="w-8 h-8">
+              <X size={16} strokeWidth={2.5} />
+            </IconButton>
+          </div>
+          <div className="flex gap-1.5 mt-3 text-[12px] font-medium">
+            <span className={cx('flex items-center gap-1 rounded-full px-2.5 py-1 min-w-0', panchayatName ? 'bg-accent/10 text-accent-ink' : 'bg-fill-2 text-label-2')}>
+              <MapPin size={12} className="shrink-0" /><span className="truncate max-w-[160px]">{panchayatName || t('ai.noPanchayat')}</span>
+            </span>
+            <span className={cx('flex items-center gap-1 rounded-full px-2.5 py-1', selectedCrop ? 'bg-green/14 text-green-ink' : 'bg-fill-2 text-label-2')}>
+              <Sprout size={12} />{selectedCrop ? t(`ag.${selectedCrop.toLowerCase()}`) : t('ai.noCrop')}
+            </span>
+          </div>
+        </div>
+
+        {/* Conversation */}
+        <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain thin-scrollbar px-4 py-4 flex flex-col gap-2">
+          <Bubble role="bot">{t('ai.greeting')}</Bubble>
+
+          {!hasConversation && (
+            <div className="mt-3 flex flex-col items-start gap-2 animate-fade">
+              <div className="text-[11.5px] font-semibold uppercase tracking-[0.06em] text-label-2 px-1">{t('ai.suggested')}</div>
+              {suggestions.map((q, i) => (
+                <button
+                  key={q}
+                  onClick={() => handleSend(q)}
+                  className="pressable animate-rise text-left text-[14px] text-accent-ink bg-accent/10 hover:bg-accent/15 rounded-[16px] px-3.5 py-2"
+                  style={{ '--i': i + 1 } as React.CSSProperties}
+                >
+                  {q}
+                </button>
+              ))}
             </div>
           )}
-          <div ref={messagesEndRef} />
+
+          {messages.map(m => (
+            <div key={m.id} className={cx('flex flex-col', m.role === 'user' ? 'items-end' : 'items-start')}>
+              <Bubble role={m.role} failed={m.failed}>{m.text}</Bubble>
+              {m.failed && (
+                <div className="flex items-center gap-2 mt-1 mr-1 text-[12px] text-red animate-fade">
+                  {t('ai.error')}
+                  <button onClick={() => retry(m)} className="flex items-center gap-1 font-semibold text-accent">
+                    <RotateCw size={12} /> {t('ai.retry')}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {isLoading && (
+            <div className="self-start flex items-center gap-1 rounded-[20px] rounded-bl-[6px] bg-fill-2 px-4 py-3.5 animate-pop origin-bottom-left" aria-label={t('ai.thinking')}>
+              {[0, 1, 2].map(i => (
+                <span key={i} className="typing-dot w-[7px] h-[7px] rounded-full bg-label-2" style={{ animationDelay: `${i * 0.15}s` }} />
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Suggested Questions */}
-        <div className="p-3 bg-white dark:bg-gray-950 border-t border-gray-100 dark:border-gray-800 shrink-0 transition-colors">
-          <div className="text-[10px] md:text-xs font-semibold text-gray-400 dark:text-gray-500 mb-2 uppercase tracking-widest">{t('ai.suggested')}</div>
-          <div className="flex overflow-x-auto gap-2 pb-1 hide-scrollbar snap-x">
-            {suggestedQuestions.map((q, i) => (
-              <button 
-                key={i} 
-                onClick={() => handleSend(q)}
-                className="snap-start shrink-0 text-[11px] md:text-xs bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 py-1.5 px-3 rounded-full transition-colors border border-gray-200 dark:border-gray-700 text-left whitespace-nowrap"
-              >
-                {q}
-              </button>
-            ))}
+        {/* Quick suggestions once a conversation is underway */}
+        {hasConversation && (
+          <div className="shrink-0 -mb-1">
+            <div className="flex gap-1.5 overflow-x-auto hide-scrollbar px-4 pb-2 fade-x">
+              {suggestions.map(q => (
+                <button
+                  key={q}
+                  onClick={() => handleSend(q)}
+                  disabled={isLoading}
+                  className="pressable shrink-0 text-[12.5px] text-label bg-fill-2 hover:bg-fill rounded-full px-3 py-1.5 whitespace-nowrap disabled:opacity-50"
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Input Area */}
-        {/* pb-[env(safe-area-inset-bottom)] ensures it stays above iOS home bar */}
-        <div className="p-3 md:p-4 bg-white dark:bg-gray-950 border-t border-gray-200 dark:border-gray-800 shrink-0 flex items-center gap-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))] transition-colors">
-          <input 
-            type="text" 
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
-            placeholder={t('ai.placeholder')}
-            className="flex-1 border border-gray-300 dark:border-gray-700 rounded-full px-4 py-2 text-[13px] md:text-sm focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:focus:ring-blue-500 bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 transition-colors"
-          />
-          <button 
-            onClick={() => handleSend(input)}
-            disabled={!input.trim() || isLoading}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white p-2 md:p-2.5 rounded-full transition-colors flex items-center justify-center shrink-0"
-          >
-            <Send size={16} className="ml-0.5" />
-          </button>
-        </div>
-
+        {/* Composer */}
+        <form
+          onSubmit={e => { e.preventDefault(); handleSend(input); }}
+          className="shrink-0 px-3 pt-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
+        >
+          <div className="flex items-center gap-2 rounded-full bg-fill-2 focus-within:bg-fill focus-within:shadow-[0_0_0_3px_color-mix(in_oklab,var(--accent)_25%,transparent)] transition-all pl-4 pr-1.5 h-11">
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder={t('ai.placeholder')}
+              aria-label={t('ai.placeholder')}
+              enterKeyHint="send"
+              className="flex-1 min-w-0 bg-transparent outline-none text-[16px] md:text-[15px] text-label placeholder:text-label-3"
+            />
+            <button
+              type="submit"
+              aria-label={t('ai.send')}
+              disabled={!input.trim() || isLoading}
+              className={cx(
+                'grid place-items-center w-8 h-8 rounded-full bg-accent text-white shrink-0 transition-all duration-300 ease-[var(--ease-spring)]',
+                input.trim() && !isLoading ? 'scale-100 opacity-100' : 'scale-75 opacity-0 pointer-events-none'
+              )}
+            >
+              <ArrowUp size={17} strokeWidth={2.6} />
+            </button>
+          </div>
+        </form>
       </div>
     </>
+  );
+}
+
+function Bubble({ role, children, failed }: { role: 'bot' | 'user'; children: React.ReactNode; failed?: boolean }) {
+  return (
+    <div
+      className={cx(
+        'max-w-[85%] px-3.5 py-2 text-[15px] leading-[1.4] whitespace-pre-wrap animate-pop break-words',
+        role === 'user'
+          ? cx('self-end rounded-[20px] rounded-br-[6px] text-white origin-bottom-right', failed ? 'bg-accent/50' : 'bg-accent')
+          : 'self-start rounded-[20px] rounded-bl-[6px] bg-fill-2 text-label origin-bottom-left'
+      )}
+    >
+      {children}
+    </div>
   );
 }

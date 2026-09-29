@@ -1,10 +1,10 @@
-# SIH Demonstration Script: Panchayat Weather Intelligence
+# SIH Demonstration Script: Mausam IQ
 
 **Estimated Duration:** 3–5 minutes
 
 ## STEP 1: Introduction
 - **Action:** Open the application homepage (`http://localhost:3000`).
-- **Script:** "Welcome to Panchayat Weather Intelligence. Our goal is to provide precise, hyper-local weather downscaling and agricultural decision-support directly at the Gram Panchayat level. Today, coarse weather forecasts often miss local variations. We solve this using AI."
+- **Script:** "Welcome to Mausam IQ. Our goal is to provide precise, hyper-local weather downscaling and agricultural decision-support directly at the Gram Panchayat level. Today, coarse weather forecasts often miss local variations. We solve this using AI."
 
 ## STEP 2: Panchayat Selection
 - **Action:** Select a Panchayat in Pune (e.g., Pirangut or a nearby Panchayat on the map).

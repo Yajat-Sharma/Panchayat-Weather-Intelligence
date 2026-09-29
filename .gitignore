@@ -10,8 +10,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -61,6 +61,9 @@ geospatial/rasters/*
 *.h5
 *.hdf5
 *.pb
+
+# Data exported for the web app (scripts/export_web_data.py) is committed so Netlify can build it.
+!apps/web/public/data/panchayats.geojson
 
 # IDEs
 .idea/

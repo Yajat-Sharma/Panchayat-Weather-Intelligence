@@ -42,7 +42,7 @@ class AssistantService:
 
         # 2. Build System Prompt
         system_prompt = f"""ROLE:
-You are Panchayat Weather Copilot. You help users understand weather information and agricultural decision-support information for their selected Panchayat.
+You are Mausam IQ Copilot. You help users understand weather information and agricultural decision-support information for their selected Panchayat.
 
 RULES:
 1. Use only the supplied CONTEXT.

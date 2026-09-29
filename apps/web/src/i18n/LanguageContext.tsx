@@ -1,56 +1,78 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { translations, LanguageCode } from './translations';
+
+const LOCALES: Record<LanguageCode, string> = { en: 'en-IN', hi: 'hi-IN', mr: 'mr-IN' };
 
 interface LanguageContextType {
   language: LanguageCode;
+  locale: string;
   setLanguage: (lang: LanguageCode) => void;
   t: (key: string, params?: Record<string, string>) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
+// The saved language lives in localStorage; expose it as an external store so SSR renders English
+// and the client picks up the saved choice during hydration without a setState-in-effect cascade.
+const STORAGE_KEY = 'panchayat_language';
+const listeners = new Set<() => void>();
+let current: LanguageCode | null = null;
+const readSaved = (): LanguageCode => {
+  if (current) return current;
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    current = saved && saved in translations ? (saved as LanguageCode) : 'en';
+  } catch {
+    current = 'en';
+  }
+  return current;
+};
+const subscribe = (cb: () => void) => {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+};
+const noopSubscribe = () => () => {};
+
 export const LanguageProvider = ({ children }: { children: React.ReactNode }) => {
-  const [language, setLanguageState] = useState<LanguageCode>('en');
-  const [mounted, setMounted] = useState(false);
+  const language = useSyncExternalStore(subscribe, readSaved, () => 'en' as LanguageCode);
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
 
   useEffect(() => {
-    // Check localStorage on mount
-    const saved = localStorage.getItem('panchayat_language') as LanguageCode;
-    if (saved && (saved === 'en' || saved === 'hi' || saved === 'mr')) {
-      setLanguageState(saved);
-    }
-    setMounted(true);
+    document.documentElement.lang = language;
+  }, [language]);
+
+  const setLanguage = useCallback((lang: LanguageCode) => {
+    current = lang;
+    try {
+      localStorage.setItem(STORAGE_KEY, lang);
+    } catch {}
+    listeners.forEach(l => l());
   }, []);
 
-  const setLanguage = (lang: LanguageCode) => {
-    setLanguageState(lang);
-    localStorage.setItem('panchayat_language', lang);
-  };
+  const t = useCallback((key: string, params?: Record<string, string>): string => {
+    const dict = translations[language] || translations.en;
+    let text: string = dict[key as keyof typeof dict] || translations.en[key as keyof typeof translations.en] || key;
 
-  const t = (key: string, params?: Record<string, string>): string => {
-    // If not mounted (SSR), return english safely without hydration mismatch
-    // But since it's a client component, we prefer to return the current state
-    const dict = translations[language] || translations['en'];
-    let text = dict[key as keyof typeof dict] || translations['en'][key as keyof typeof translations['en']] || key;
-    
     if (params) {
       Object.keys(params).forEach(p => {
         text = text.replace(`{${p}}`, params[p]);
       });
     }
-    
-    return text;
-  };
 
-  // Prevent hydration mismatch by not rendering translation-dependent stuff until mounted
-  // However, returning children directly is usually fine if text matches server (English default)
-  // We'll just return it. The user might see English flash for a ms if they selected Hindi.
-  
+    return text;
+  }, [language]);
+
+  const value = useMemo(
+    () => ({ language, locale: LOCALES[language], setLanguage, t }),
+    [language, setLanguage, t]
+  );
+
+  // Hold the first paint until the saved language is known, so Hindi/Marathi users never see an English flash.
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
-      <div className={!mounted ? 'opacity-0' : 'opacity-100 transition-opacity duration-200'}>
+    <LanguageContext.Provider value={value}>
+      <div className={`h-full ${mounted ? 'opacity-100 transition-opacity duration-300' : 'opacity-0'}`}>
         {children}
       </div>
     </LanguageContext.Provider>
